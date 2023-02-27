@@ -7,9 +7,9 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
 #set(CMAKE_PREFIX_PATH "D:/Qt/6.3.0/mingw_64/lib/cmake")#???
-#set(CMAKE_PREFIX_PATH "/home/theo/LO21/Qt/6.4.1/gcc_64/lib/cmake") #Theo
+set(CMAKE_PREFIX_PATH "/home/theo/LO21/Qt/6.4.1/gcc_64/lib/cmake") #Theo
 #set(CMAKE_PREFIX_PATH "D:/Qt/6.4.1/mingw_64/lib/cmake") #???
-set(CMAKE_PREFIX_PATH "C:/Qt/6.4.1/mingw_64/lib/cmake") #Sacha
+#set(CMAKE_PREFIX_PATH "C:/Qt/6.4.1/mingw_64/lib/cmake") #Sacha
 
 
 
