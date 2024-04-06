@@ -9,4 +9,4 @@ Auteurs :
 - [Saucisse2toulouse](https://github.com/Saucisse2toulouse)
 - [antoine-gajan](https://github.com/antoine-gajan/)
 - [sacha-sz](https://github.com/sacha-sz/)
-- [Th3o-D](https://github.com/Th3o-D/)
+- [theodubus](https://github.com/theodubus/)
