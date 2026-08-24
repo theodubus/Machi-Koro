@@ -3,11 +3,11 @@
 
 EntrepriseRenovation::EntrepriseRenovation() :
         Batiment("EntrepriseRenovation",
-                 1,
+                 4,
                  "Choississez un de vos etablissements qui ne soit pas de type special. Tous les etablissements identiques de tous les joueurs sont fermes. Puis recevez une piece de la banque pour chaque etablissement ferme.",
                  "../assets/batiments/Violet/Entreprise-de-renovation.png",
                  Violet,
-                 list<unsigned int>{10},
+                 list<unsigned int>{8},
                  "special") {
     ///Constructeur de EntrepriseRenovation
 }
