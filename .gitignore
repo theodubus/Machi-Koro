@@ -51,9 +51,12 @@ Module.symvers
 Mkfile.old
 dkms.conf
 
+# repertoires de build
+build/
+cmake-build-*/
+
 # clion
 .idea/
-cmake-build-*/
 *.iws
 out/
 .idea_modules/

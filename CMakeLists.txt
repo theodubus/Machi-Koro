@@ -6,12 +6,13 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
-#set(CMAKE_PREFIX_PATH "D:/Qt/6.3.0/mingw_64/lib/cmake")#???
-set(CMAKE_PREFIX_PATH "/home/theo/LO21/Qt/6.4.1/gcc_64/lib/cmake") #Theo
-#set(CMAKE_PREFIX_PATH "D:/Qt/6.4.1/mingw_64/lib/cmake") #???
-#set(CMAKE_PREFIX_PATH "C:/Qt/6.4.1/mingw_64/lib/cmake") #Sacha
-
-
+# Emplacement de Qt6.
+# Par defaut, on utilise le Qt installe sur le systeme (paquets qt6-base-dev et
+# qt6-multimedia-dev sous Debian/Ubuntu, Homebrew sous macOS).
+# Si Qt est installe ailleurs (installateur officiel, Windows...), indiquez son
+# chemin a la configuration, sans modifier ce fichier :
+#   cmake -S . -B build -DCMAKE_PREFIX_PATH="C:/Qt/6.4.1/mingw_64/lib/cmake"
+#   cmake -S . -B build -DCMAKE_PREFIX_PATH="$HOME/Qt/6.4.1/gcc_64/lib/cmake"
 
 find_package(Qt6 COMPONENTS
         Core
