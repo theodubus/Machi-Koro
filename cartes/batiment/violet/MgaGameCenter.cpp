@@ -36,12 +36,25 @@ void MgaGameCenter::declencher_effet(unsigned int possesseur, int bonus) const{
         // Selection du batiment du joueur
         Batiment *batiment = j_actuel->selectionner_batiment();
         // Tant qu'il choisi un batiment violet, on lui redemande
-        while (batiment->get_couleur() == Violet) {
+        while (batiment != nullptr && batiment->get_couleur() == Violet) {
             instance->get_vue_partie()->get_vue_infos()->add_info("Vous ne pouvez pas selectionner un batiment violet !");
             batiment = j_actuel->selectionner_batiment();
         }
-        // Déclenchement de l'effet du batiment choisi
-        batiment->declencher_effet(possesseur, bonus);
+        // Plus aucun batiment selectionnable : l'effet ne peut pas s'appliquer.
+        if (batiment == nullptr) {
+            return;
+        }
+        // Déclenchement de l'effet du batiment choisi.
+        // Un batiment rouge appartenant au joueur courant leve une exception (on ne
+        // se paie pas soi-meme) : sans ce filet, la fermeture ci-dessous etait sautee
+        // et la carte restait activable au tour suivant.
+        try {
+            batiment->declencher_effet(possesseur, bonus);
+        }
+        catch (exception const& e) {
+            instance->get_vue_partie()->get_vue_infos()->add_info(
+                    string("L'effet rejoue n'a pas pu s'appliquer : ") + e.what());
+        }
 
         // Fermeture du batiment MGAGameCenter
         j_actuel->fermer_batiment(bat);

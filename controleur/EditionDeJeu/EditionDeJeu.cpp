@@ -13,7 +13,7 @@ EditionDeJeu::EditionDeJeu(const string& nom_edition) : nom(nom_edition) {
         /// Constructeur de Deluxe
         nom = "Deluxe";
         est_edition = true;
-        nb_joueurs_max = 5;
+        nb_joueurs_max = 4;
         nb_monuments_win = 5;
 
         /// Liste des monuments specifiques a Deluxe
@@ -132,7 +132,7 @@ EditionDeJeu::EditionDeJeu(const string& nom_edition) : nom(nom_edition) {
         /// Constructeur de Marina
         nom = "Marina";
         est_edition = false;
-        nb_joueurs_max = 5;
+        nb_joueurs_max = 4;
         nb_monuments_win = 5;
 
         /// Constructeur de Marina
@@ -176,7 +176,7 @@ EditionDeJeu::EditionDeJeu(const string& nom_edition) : nom(nom_edition) {
         /// Constructeur de Custom
         nom = "Custom";
         est_edition = true;
-        nb_joueurs_max = 6;
+        nb_joueurs_max = 4;
         nb_monuments_win = 8;
 
         /// Liste des monuments specifiques a Custom
@@ -236,7 +236,11 @@ EditionDeJeu::EditionDeJeu(const string& nom_edition) : nom(nom_edition) {
         batiment.insert(pair<Batiment*, unsigned int>(new StandDeHamburger(), 4));
         batiment.insert(pair<Batiment*, unsigned int>(new SushiBar(), 4));
     }
-
+    else {
+        // Sans ce garde-fou, une edition inconnue laissait nb_joueurs_max,
+        // nb_monuments_win et est_edition avec des valeurs indeterminees.
+        throw gameException("Edition ou extension inconnue : " + nom_edition);
+    }
 }
 
 EditionDeJeu::~EditionDeJeu() {

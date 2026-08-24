@@ -19,7 +19,6 @@ enum strat_IA {aleatoire, agressive, defensif, none};
 class Joueur {
     private:
         /*** Attributs de la classe ***/
-        Batiment* selec_bat = nullptr;
         const string nom;
         unsigned int argent;
         bool est_ia;
@@ -33,7 +32,8 @@ class Joueur {
     public:
         /*** Constructeurs et destructeur ***/
         Joueur(const string& nom, const vector<Monument *>&list_mon, const vector<Batiment *>&list_bat, unsigned int arg_depart, strat_IA stratIa=none);
-        ~Joueur();
+        // La classe a des methodes virtuelles : le destructeur doit l'etre aussi.
+        virtual ~Joueur();
 
         /***** Getters *****/
         unsigned int get_argent() const {return argent;};
@@ -57,6 +57,25 @@ class Joueur {
         void set_argent(unsigned int arg) {argent = arg;};
 
         /***** Autres methodes *****/
+        // L'Hotel de ville (Marina) et la Fabrique du Pere Noel sont distribues deja
+        // construits en debut de partie. Le livret est explicite : « L'Hotel de ville
+        // est un monument, mais celui-ci est construit des le debut de la partie », et
+        // la condition de victoire porte sur les 6 monuments *a construire*. Ils ne
+        // comptent donc ni pour la victoire, ni pour les cartes qui denombrent les
+        // monuments construits d'un joueur.
+        static bool est_monument_de_depart(const string& nom_mon) {
+            return nom_mon == "HotelDeVille" || nom_mon == "FabriqueDuPereNoel";
+        }
+
+        // Nombre de monuments effectivement construits par le joueur, hors monuments
+        // offerts au depart.
+        unsigned int nb_monuments_construits() const;
+
+        // Vrai seulement si le monument est construit (face « en jeu »).
+        // A ne pas confondre avec possede_monument(), qui retrouve la carte d'un
+        // monument qu'il soit construit ou non.
+        bool monument_construit(const string& nom_mon) const;
+
         unsigned int count_type(const string& type) const;
 
         void activer_monument(Monument *mon);
@@ -73,8 +92,6 @@ class Joueur {
         Monument* selectionner_monument() const;
 
         Batiment* possede_batiment(const string& nom_bat) const;
-public slots:
-    void selection_bat(VueCarte *);
 };
 
 #endif //MACHI_KORO_JOUEUR_H

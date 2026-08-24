@@ -41,8 +41,12 @@ void VueShop::batiment_clique(VueCarte *vc) {
     // Création d'une nouvelle fenetre
     if (Partie::get_instance()->get_vue_partie()->get_vue_carte() != nullptr) {
         Partie::get_instance()->get_vue_partie()->get_vue_carte()->close();
+        Partie::get_instance()->get_vue_partie()->set_vue_carte(nullptr);
     }
     QWidget* fenetre = new QWidget();
+    // Sans cet attribut la fenetre etait seulement masquee : un clic sur chaque
+    // carte du shop abandonnait un QWidget et son contenu en memoire.
+    fenetre->setAttribute(Qt::WA_DeleteOnClose);
     Partie::get_instance()->get_vue_partie()->set_vue_carte(fenetre);
     // Création d'un label contenant l'image
     QLabel *label = new QLabel(fenetre);
@@ -89,7 +93,9 @@ void VueShop::clicked_acheter_event(){
     // Si on est dans la phase d'achat
     if (partie->get_moment_achat()) {
         partie->set_moment_achat(false);
-        partie->acheter_carte_event(carte_choisie);
+        // Un achat refuse (carte trop chere ou disparue du shop) doit laisser au
+        // joueur le benefice du « rien construit », notamment l'effet de l'Aeroport.
+        bool achat_reussi = partie->acheter_carte_event(carte_choisie);
         carte_choisie = nullptr;
         // On ferme la fenêtre d'achat
         Partie::get_instance()->get_vue_partie()->get_vue_carte()->close();
@@ -97,7 +103,7 @@ void VueShop::clicked_acheter_event(){
         // On met la popup à nullptr
         Partie::get_instance()->get_vue_partie()->set_vue_carte(nullptr);
         Partie::get_instance()->get_vue_partie()->set_bouton_rien_faire(false);
-        Partie::get_instance()->suite_tour(true);
+        Partie::get_instance()->suite_tour(achat_reussi);
     }
     else
     {

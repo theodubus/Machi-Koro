@@ -18,7 +18,7 @@ void PetitBateauDePeche::declencher_effet(unsigned int possesseur, int bonus) co
     Partie * partie = Partie::get_instance();
     Joueur* joueur_actuel = partie->get_tab_joueurs()[possesseur];
 
-    if(joueur_actuel->possede_monument("Port")){
+    if(joueur_actuel->monument_construit("Port")){
         partie->get_vue_partie()->get_vue_infos()->add_info("Activation de l'effet du PetitBateauDePeche du joueur \"" + joueur_actuel->get_nom() + "\"");
         unsigned int argent = joueur_actuel->get_argent();
         argent += 3;

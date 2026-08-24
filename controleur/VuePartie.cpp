@@ -13,12 +13,13 @@ VuePartie::VuePartie(QWidget *parent){
     parent_fenetre = parent;
     fenetre_carte = nullptr;
 
-    map_des.insert(1, new QMovie("../assets/des/1.gif"));
-    map_des.insert(2, new QMovie("../assets/des/2.gif"));
-    map_des.insert(3, new QMovie("../assets/des/3.gif"));
-    map_des.insert(4, new QMovie("../assets/des/4.gif"));
-    map_des.insert(5, new QMovie("../assets/des/5.gif"));
-    map_des.insert(6, new QMovie("../assets/des/6.gif"));
+    // Les six animations sont rattachees a la vue : sans parent, elles n'etaient
+    // jamais liberees et conservaient toutes leurs images GIF decodees, soit
+    // plusieurs megaoctets pour la duree de l'application.
+    for (unsigned int face = 1; face <= 6; face++) {
+        map_des.insert(face, new QMovie(QString("../assets/des/%1.gif").arg(face),
+                                        QByteArray(), this));
+    }
 
 
     structure = new QVBoxLayout();
@@ -82,9 +83,10 @@ VuePartie::VuePartie(QWidget *parent){
     //Ajout de l'image dans l'entete
     //Affichage de l'image "Machi Koro"
     image_entete = new QLabel;
-    QPixmap* image = new QPixmap("../assets/annexes/Machi-koro.png");
-    image->scaled(300,50, Qt::KeepAspectRatio);
-    image_entete->setPixmap(*image);
+    // setPixmap copie l'image : inutile de l'allouer sur le tas, ou elle n'etait
+    // jamais liberee.
+    QPixmap image("../assets/annexes/Machi-koro.png");
+    image_entete->setPixmap(image);
 
     entete->addWidget(image_entete, 0, Qt::AlignCenter);
 

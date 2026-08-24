@@ -29,7 +29,7 @@ construit tous les monuments requis par l'édition remporte la partie.
 - Deux extensions greffables sur l'édition Standard : **Marina** et **Green Valley**
 - Quatre familles de bâtiments — bleu, vert, rouge et violet — aux règles d'activation distinctes
 - Huit monuments, dont les effets modifient le déroulement du tour (second dé, relance, rejouer…)
-- Multijoueur local, de 2 joueurs jusqu'à la limite propre à chaque édition
+- Multijoueur local, de 2 à 4 joueurs
 - Adversaires contrôlés par l'ordinateur, avec trois profils : agressif, défensif ou aléatoire
 - Boutique paramétrable : nombre de piles visibles limité, ou catalogue complet
 - Pioche mélangée à chaque partie et réapprovisionnement automatique de la boutique
@@ -45,18 +45,23 @@ construit tous les monuments requis par l'édition remporte la partie.
 
 ## Éditions et extensions
 
-| Édition | Joueurs max. | Monuments à construire | Contenu |
+| Édition | Joueurs | Monuments à construire | Contenu |
 |---|---|---|---|
-| **Standard** | 4 | 4 | Le jeu de base : 15 bâtiments différents, 4 monuments |
-| **Deluxe** | 5 | 5 | Version française condensée : reprend le Standard et une partie des extensions |
-| **Custom** | 6 | 8 | Toutes les cartes de toutes les éditions, plus deux cartes inédites |
+| **Standard** | 2 à 4 | 4 | Le jeu de base : 15 bâtiments différents, 4 monuments |
+| **Deluxe** | 2 à 4 | 6 | Version française condensée : reprend le Standard et une partie des extensions |
+| **Custom** | 2 à 4 | 6 | Toutes les cartes de toutes les éditions, plus deux cartes inédites |
+
+La partie est gagnée par le premier joueur qui a construit **tous** ses
+monuments. Ajouter l'extension Marina porte donc ce total à 6 pour l'édition
+Standard, puisqu'elle apporte deux monuments constructibles de plus.
+L'Hôtel de ville, distribué déjà construit, ne compte pas dans ce total.
 
 Les deux extensions ne se greffent que sur l'édition **Standard** ; les éditions
 Deluxe et Custom intègrent déjà leur contenu.
 
 | Extension | Apports notables |
 |---|---|
-| **Marina** | Le Port, l'Aéroport et l'Hôtel de ville ; les cartes maritimes (Petit bateau de pêche, Chalutier, Sushi bar) dont l'effet dépend du Port |
+| **Marina** | Le Port et l'Aéroport, deux monuments de plus à construire, ainsi que l'Hôtel de ville, offert construit dès le départ ; les cartes maritimes (Petit bateau de pêche, Chalutier, Sushi bar) dont l'effet dépend du Port |
 | **Green Valley** | L'Arboretum et l'Entreprise de rénovation ; la Cave à vin, le Champ de maïs, le Club privé, le Restaurant 5 étoiles |
 
 Deux cartes n'existent que dans l'édition Custom : le **MGA Game Center**, qui
@@ -90,7 +95,7 @@ acquis et modifient les règles du tour.
 | Tour radio | Relancer les dés une fois par tour |
 | Port | +2 au résultat lorsqu'il atteint 10 |
 | Aéroport | 10 pièces si rien n'a été acheté pendant le tour |
-| Hôtel de ville | 1 pièce si le joueur est ruiné avant d'acheter |
+| Hôtel de ville | 1 pièce si le joueur est ruiné avant d'acheter — offert construit, il ne compte pas pour la victoire |
 | Fabrique du Père Noël | 3 pièces sur un jet de dés cassé |
 
 Chaque joueur démarre avec **3 pièces**, un **Champ de blé** et une

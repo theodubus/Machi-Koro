@@ -18,8 +18,10 @@ void Port::declencher_effet(unsigned int possesseur, int bonus) const {
         if (partie->get_tab_joueurs()[possesseur]->get_est_ia()) {
             if (rand() % 4 == 1) {
                 partie->get_vue_partie()->get_vue_infos()->add_info("Activation de l'effet du Port du joueur \"" + joueur->get_nom() + "\"");
-                partie->set_de_1(partie->get_de_1() + 1);
-                partie->set_de_2(partie->get_de_2() + 1);
+                // On ajoute 2 au resultat, et non 1 a chaque de : le livret precise
+                // « vous ne pouvez pas choisir de n'ajouter que 1 », et incrementer les
+                // des ferait afficher des faces a 7.
+                partie->ajouter_bonus_port();
             }
         } else {
             QMessageBox msgBox;
@@ -33,8 +35,7 @@ void Port::declencher_effet(unsigned int possesseur, int bonus) const {
             int ret = msgBox.exec();
             if (ret == QMessageBox::Yes) {
                 string effet = "Activation de l'effet du Port du joueur \"" + joueur->get_nom() + "\"";
-                partie->set_de_2(partie->get_de_2() + 1);
-                partie->set_de_1(partie->get_de_1() + 1);
+                partie->ajouter_bonus_port();
                 partie->get_vue_partie()->update_des();
                 partie->get_vue_partie()->get_vue_infos()->add_info(effet);
             }

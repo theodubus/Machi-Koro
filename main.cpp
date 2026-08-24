@@ -286,13 +286,15 @@ void launch_menu_1(QApplication *app){
     model->appendRow(item3);
     model->appendRow(item4);
 
-    editionCombo->setCurrentIndex(0);
     editionCombo->setMinimumWidth(200);
     editionCombo->setStyle(QStyleFactory::create("Fusion"));
 
     item1->setFlags(item1->flags() & ~Qt::ItemIsEnabled);
 
+    // setModel remet l'index a zero : il faut donc le positionner apres, sinon
+    // l'element d'invite reste selectionne.
     editionCombo->setModel(model);
+    editionCombo->setCurrentIndex(0);
 
     gridLayout->addWidget(editionLabel, 0, 0);
     gridLayout->addWidget(editionCombo, 0, 1);
@@ -352,6 +354,13 @@ void launch_menu_1(QApplication *app){
 
     // le bouton valider fait appel à la fonction validate_menu_1
     QObject::connect(validateButton, &QPushButton::clicked, [menu, editionCombo, greenValleyCheck, marinaCheck](){
+        // L'element d'invite est desactive dans la liste, mais reste selectionne
+        // tant que l'utilisateur n'a rien choisi : il ne designe aucune edition.
+        if (editionCombo->currentIndex() <= 0) {
+            QMessageBox::information(menu, "Choix de l'édition",
+                                     "Veuillez choisir une édition avant de valider.");
+            return;
+        }
         string edition = editionCombo->currentText().toStdString();
         list<string> extensions;
         if (greenValleyCheck->isChecked()){
@@ -367,53 +376,6 @@ void launch_menu_1(QApplication *app){
     menu->setWindowTitle("Machi Koro - Menu");
 
     menu->show();
-}
-
-void build_content_jeu(QWidget *jeu){
-
-    auto *main_layout = new QVBoxLayout(jeu);
-
-    auto *layout_entete = new QHBoxLayout();
-    auto label_entete = new QLabel("Ici entete");
-    layout_entete->addWidget(label_entete);
-
-    auto *layout_centre = new QHBoxLayout();
-    auto *layout_centre_gauche = new QVBoxLayout(); // Pioche et affichages
-
-    // build_content_centre_gauche(layout_centre_gauche);
-    auto label_centre_gauche = new QLabel("Ici pioche");
-    layout_centre_gauche->addWidget(label_centre_gauche);
-
-    auto *layout_centre_droite = new QVBoxLayout(); // Shop
-    auto label_centre_droite = new QLabel("Ici shop");
-    // build_content_centre_droite(layout_centre_droite);
-    layout_centre_droite->addWidget(label_centre_droite);
-    layout_centre->addLayout(layout_centre_gauche);
-    layout_centre->addLayout(layout_centre_droite);
-
-
-    auto *layout_joueur = new QHBoxLayout();
-    auto *layout_joueur_gauche = new QVBoxLayout(); // Infos joueur, monuments, argent, etc
-
-    // build_content_joueur_gauche(layout_joueur_gauche);
-    auto label_joueur_gauche = new QLabel("Ici infos joueur");
-    layout_joueur_gauche->addWidget(label_joueur_gauche);
-
-    auto *layout_joueur_droite = new QVBoxLayout(); // Batiments et bouton batiments fermes
-    // build_content_joueur_droite(layout_joueur_droite);
-
-    auto label_joueur_droite = new QLabel("Ici batiments");
-    layout_joueur_droite->addWidget(label_joueur_droite);
-    layout_joueur->addLayout(layout_joueur_gauche);
-    layout_joueur->addLayout(layout_joueur_droite);
-
-    main_layout->addLayout(layout_entete);
-    main_layout->addLayout(layout_centre);
-    main_layout->addLayout(layout_joueur);
-
-    jeu->setLayout(main_layout);
-
-    jeu->setWindowTitle("Machi Koro - Jeu");
 }
 
 int main(int argc, char * argv[]) {

@@ -15,7 +15,7 @@ void SushiBar::declencher_effet(unsigned int possesseur, int bonus) const{
     Joueur* joueur_possesseur = partie->get_tab_joueurs()[possesseur];
     //Trouver un joueur qui a cette carte
     if(partie->get_joueur_actuel() != possesseur){
-        if (partie->get_tab_joueurs()[possesseur]->possede_monument("Port")){
+        if (partie->get_tab_joueurs()[possesseur]->monument_construit("Port")){
             partie->get_vue_partie()->get_vue_infos()->add_info("\"Activation de l'effet du Sushi bar du joueur \""+ joueur_possesseur->get_nom() + "\"");
             partie->transfert_argent(partie->get_joueur_actuel(), possesseur, 3 + bonus) ;
         }
