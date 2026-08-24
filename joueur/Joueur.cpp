@@ -237,22 +237,17 @@ Batiment* Joueur::selectionner_batiment() const {
     }
     // Si c'est une IA
     else{
-        int compteur = 0;
+        // i a ete calcule plus haut et vaut le nombre de batiments selectionnables ;
+        // il est forcement strictement positif ici, le cas i == 0 ayant deja rendu nullptr.
+        // Choix de l'IA de maniere aleatoire
+        int choix = rand() % i;
+        int rang = 0;
         for (auto& couleur : get_liste_batiment()) {
             for (auto &bat: couleur.second) {
-                compteur++;
-            }
-        }
-        compteur = 0;
-        // Choix de l'IA de manière aléatoire
-        int choix = rand() % compteur;
-        Batiment * bat_picked = nullptr;
-        for (auto& couleur : get_liste_batiment()) {
-            for (auto &bat: couleur.second) {
-                if (compteur == choix) {
+                if (rang == choix) {
                     bat_picked = bat.first;
                 }
-                compteur++;
+                rang++;
             }
         }
     }
