@@ -1,6 +1,7 @@
 #include <QRadioButton>
 #include <QCoreApplication>
 #include <QTime>
+#include <QTimer>
 #include "Partie.h"
 #include "VuePartie.h"
 
@@ -12,22 +13,17 @@ Partie* Partie::get_instance(const string &edition_name, const list<string> &ext
         EditionDeJeu * edition;
         vector<EditionDeJeu *> listing_extension;
 
-        if (edition_name == "Standard") {
-            edition = new EditionDeJeu("Standard");
-
-            for (const auto & extensions_name : extensions_names) {
-                listing_extension.push_back(new EditionDeJeu(extensions_name));
-            }
-
-        }
-        else if (edition_name == "Deluxe") {
-            edition = new EditionDeJeu("Deluxe");
-        }
-        else if (edition_name == "Custom") {
-            edition = new EditionDeJeu("Custom");
+        if (edition_name == "Standard" || edition_name == "Deluxe" || edition_name == "Custom") {
+            edition = new EditionDeJeu(edition_name);
         }
         else {
             throw gameException("Edition inconnue");
+        }
+
+        // Les extensions etaient auparavant ignorees en silence pour les editions
+        // Deluxe et Custom, alors qu'elles etaient bien transmises.
+        for (const auto & extensions_name : extensions_names) {
+            listing_extension.push_back(new EditionDeJeu(extensions_name));
         }
 
         handler.instance = new Partie(edition, joueurs, shop_type, shop_size, listing_extension);
@@ -708,13 +704,11 @@ void Partie::jouer_tour() {
     vue_partie->get_vue_infos()->add_info("Phase d'achat");
 
     if (tab_joueurs[joueur_actuel]->get_est_ia()) {
-        /// on fige l'interface graphique pour 2 secondes
-        QTime dieTime = QTime::currentTime().addSecs(2);
-        while (QTime::currentTime() < dieTime) {
-            QCoreApplication::processEvents(QEventLoop::AllEvents, 100);
-        }
-        /// on lance la phase d'achat de l'IA
-        acheter_carte_ia();
+        /// On laisse 2 secondes au joueur pour lire le tour de l'IA, puis on lance
+        /// sa phase d'achat. Passer par une minuterie plutot que par une boucle
+        /// d'attente active libere le processeur et, surtout, rend la main a la
+        /// boucle d'evenements : la pile d'appels se vide entre deux tours.
+        QTimer::singleShot(2000, []() { Partie::get_instance()->acheter_carte_ia(); });
     } else {
         vue_partie->get_vue_infos()->add_info("Pour acheter une carte, cliquez dessus puis sur le bouton 'Acheter'");
         vue_partie->get_vue_infos()->add_info("Pour passer votre tour, cliquez sur le bouton 'Ne rien faire' puis confirmez");
@@ -812,16 +806,19 @@ void Partie::suite_tour(bool achat_ok){
     vue_partie->update_vue_shop();
     vue_partie->update_vue_info();
     vue_partie->get_vue_infos()->add_info("Fin du tour");
-    QTime endTime = QTime::currentTime().addSecs(1);
 
-    // Figer l'affichage jusqu'à ce que l'heure actuelle soit supérieure à l'heure de fin
-    while (QTime::currentTime() < endTime)
-    {
-        QCoreApplication::processEvents(QEventLoop::AllEvents, 100);
-    }
+    /// On marque une seconde avant d'enchainer. Le passage par une minuterie evite
+    /// que jouer_tour(), acheter_carte_ia() et suite_tour() ne s'appellent en
+    /// cascade : la partie entiere s'empilait sur la pile d'appels, a raison de
+    /// trois cadres par tour jamais depiles avant la fin de la partie.
+    QTimer::singleShot(1000, []() { Partie::get_instance()->terminer_tour(); });
+}
 
-    if (vue_partie->get_vue_carte() != nullptr)
+void Partie::terminer_tour() {
+    if (vue_partie->get_vue_carte() != nullptr) {
         vue_partie->get_vue_carte()->close();
+        vue_partie->set_vue_carte(nullptr);
+    }
 
     /// Vérifie si la partie est finie
     if (est_gagnant(joueur_actuel)) {

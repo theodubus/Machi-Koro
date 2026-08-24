@@ -19,7 +19,6 @@ enum strat_IA {aleatoire, agressive, defensif, none};
 class Joueur {
     private:
         /*** Attributs de la classe ***/
-        Batiment* selec_bat = nullptr;
         const string nom;
         unsigned int argent;
         bool est_ia;
@@ -33,7 +32,8 @@ class Joueur {
     public:
         /*** Constructeurs et destructeur ***/
         Joueur(const string& nom, const vector<Monument *>&list_mon, const vector<Batiment *>&list_bat, unsigned int arg_depart, strat_IA stratIa=none);
-        ~Joueur();
+        // La classe a des methodes virtuelles : le destructeur doit l'etre aussi.
+        virtual ~Joueur();
 
         /***** Getters *****/
         unsigned int get_argent() const {return argent;};
@@ -92,8 +92,6 @@ class Joueur {
         Monument* selectionner_monument() const;
 
         Batiment* possede_batiment(const string& nom_bat) const;
-public slots:
-    void selection_bat(VueCarte *);
 };
 
 #endif //MACHI_KORO_JOUEUR_H

@@ -41,8 +41,12 @@ void VueShop::batiment_clique(VueCarte *vc) {
     // Création d'une nouvelle fenetre
     if (Partie::get_instance()->get_vue_partie()->get_vue_carte() != nullptr) {
         Partie::get_instance()->get_vue_partie()->get_vue_carte()->close();
+        Partie::get_instance()->get_vue_partie()->set_vue_carte(nullptr);
     }
     QWidget* fenetre = new QWidget();
+    // Sans cet attribut la fenetre etait seulement masquee : un clic sur chaque
+    // carte du shop abandonnait un QWidget et son contenu en memoire.
+    fenetre->setAttribute(Qt::WA_DeleteOnClose);
     Partie::get_instance()->get_vue_partie()->set_vue_carte(fenetre);
     // Création d'un label contenant l'image
     QLabel *label = new QLabel(fenetre);

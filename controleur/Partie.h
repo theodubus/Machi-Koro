@@ -67,6 +67,9 @@ public:
     void jouer_partie();
     void jouer_tour();
     void suite_tour(bool achat_ok);
+    // Seconde moitie de suite_tour(), appelee par minuterie : verifie la victoire
+    // et enchaine sur le tour suivant.
+    void terminer_tour();
     bool est_gagnant(unsigned int j) const;
 
 

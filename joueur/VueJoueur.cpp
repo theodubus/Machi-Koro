@@ -114,7 +114,7 @@ VueJoueur::VueJoueur(Joueur* j,bool e_j_a, QWidget *parent) : carte_choisie(null
     widget_scroll_mon = new QWidget();
     int ind_mon=0;
     for (auto& mon : joueur->get_liste_monument()){
-        vue_monuments->push_back(new VueCarte(*mon.first,true, (bool*)mon.second, parent));
+        vue_monuments->push_back(new VueCarte(*mon.first, true, mon.second, parent));
         layout_monuments->addWidget((*vue_monuments)[ind_mon], ind_mon/3, ind_mon%3, Qt::Alignment());
         connect((*vue_monuments)[ind_mon],SIGNAL(carteClicked(VueCarte*)),this,SLOT(monumentClique(VueCarte*)));
         ind_mon++;
@@ -167,8 +167,10 @@ void VueJoueur::batimentClique(VueCarte* vc){
     // Création d'une nouvelle fenetre
     if (Partie::get_instance()->get_vue_partie()->get_vue_carte() != nullptr) {
         Partie::get_instance()->get_vue_partie()->get_vue_carte()->close();
+        Partie::get_instance()->get_vue_partie()->set_vue_carte(nullptr);
     }
     QWidget* fenetre = new QWidget();
+    fenetre->setAttribute(Qt::WA_DeleteOnClose);
     Partie::get_instance()->get_vue_partie()->set_vue_carte(fenetre);
     // Création d'un label contenant l'image
     QLabel *label = new QLabel(fenetre);
@@ -186,8 +188,10 @@ void VueJoueur::monumentClique(VueCarte* vc){
     // Création d'une nouvelle fenetre
     if (Partie::get_instance()->get_vue_partie()->get_vue_carte() != nullptr) {
         Partie::get_instance()->get_vue_partie()->get_vue_carte()->close();
+        Partie::get_instance()->get_vue_partie()->set_vue_carte(nullptr);
     }
     QWidget* fenetre = new QWidget();
+    fenetre->setAttribute(Qt::WA_DeleteOnClose);
     Partie::get_instance()->get_vue_partie()->set_vue_carte(fenetre);
     // Création d'un label contenant l'image
     QLabel *label = new QLabel(fenetre);
@@ -243,6 +247,7 @@ void VueJoueur::affichage_bat_ferme(){
 void VueJoueur::clicked_acheter_event(){
     Partie *partie = Partie::get_instance();
     partie->get_vue_partie()->get_vue_carte()->close();
+    partie->get_vue_partie()->set_vue_carte(nullptr);
     VueCarte* carte = partie->get_vue_partie()->get_vue_joueur()->get_carte_choisie();
     bool achat_reussi = partie->acheter_carte_event(carte);
 
