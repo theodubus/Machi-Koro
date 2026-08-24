@@ -9,7 +9,11 @@ BanqueDeMinivilles::BanqueDeMinivilles()
                    "../assets/batiments/Vert/BanqueDeMinivilles.png",
                    Vert,
                    {5, 6},
-                   "commerce") {}
+                   // La carte porte l'icone valise, comme les deux « Entreprise »,
+                   // et non l'icone boite du commerce. Le type conditionne ce que
+                   // comptent les autres cartes : typee « commerce », elle etait
+                   // ponctionnee a tort par la Maison d'edition.
+                   "entreprise") {}
 
 void BanqueDeMinivilles::declencher_effet(unsigned int possesseur, int bonus) const{
     /// Effet de l'BanqueDeMinivilles
