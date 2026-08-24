@@ -12,10 +12,7 @@ Joueur::Joueur(const string& nom, const vector<Monument *>&list_mon, const vecto
 {
     /// Constructeur de joueur
     for (auto mon : list_mon)
-        if (mon->get_nom() == "FabriqueDuPereNoel" || mon->get_nom() == "HotelDeVille")
-            liste_monument[mon] = true;
-        else
-            liste_monument[mon] = false;
+        liste_monument[mon] = est_monument_de_depart(mon->get_nom());
     for (auto bat : list_bat)
         liste_batiment[bat->get_couleur()][bat] = 1;
 }
@@ -161,17 +158,45 @@ void Joueur::retirer_batiment(Batiment *bat) {
 unsigned int Joueur::count_type(const string& type) const {
     /// Compte le nombre de cartes d'un type donne
     unsigned int count = 0;
-    auto liste_bat = liste_batiment;
     // pour chaque couleur de la liste de batiments du joueur
-    for (const auto& couleur : liste_bat) {
+    for (const auto& couleur : liste_batiment) {
         // pour chaque batiment de la couleur, (batiments sous forme de map (Batiment*, unsigned int))
-        for (auto batiment : liste_bat[couleur.first]) {
+        for (const auto& batiment : couleur.second) {
             if (batiment.first->get_type() == type) {
                 count += batiment.second;
             }
         }
     }
+    // Un etablissement ferme ne produit plus d'effet, mais le livret precise qu'il
+    // « compte toujours comme etant en jeu pour l'effet d'autres cartes » : trois
+    // fermes fermees rapportent encore 9 pieces via la fromagerie.
+    for (const Batiment* bat : liste_batiment_fermes) {
+        if (bat->get_type() == type) {
+            count++;
+        }
+    }
     return count;
+}
+
+unsigned int Joueur::nb_monuments_construits() const {
+    /// Nombre de monuments construits, hors monuments offerts en debut de partie
+    unsigned int count = 0;
+    for (const auto& mon : liste_monument) {
+        if (mon.second && !est_monument_de_depart(mon.first->get_nom())) {
+            count++;
+        }
+    }
+    return count;
+}
+
+bool Joueur::monument_construit(const string& nom_mon) const {
+    /// Vrai uniquement si le monument est present ET construit
+    for (const auto& mon : liste_monument) {
+        if (mon.first->get_nom() == nom_mon) {
+            return mon.second;
+        }
+    }
+    return false;
 }
 
 Batiment* Joueur::possede_batiment(const string& nom_bat) const{
@@ -233,6 +258,10 @@ Batiment* Joueur::selectionner_batiment() const {
             layout->addLayout(layout_batiments);
             window->setLayout(layout);
             window->exec();
+            // Le choix est obligatoire : si la fenetre est fermee sans selection on
+            // la repose. Il faut en revanche liberer celle qu'on vient d'utiliser,
+            // sinon chaque passage abandonne un QDialog et ses VueCarte en memoire.
+            delete window;
         }
     }
     // Si c'est une IA
@@ -305,15 +334,15 @@ Monument *Joueur::selectionner_monument() const {
     /// Choisir un de ses monuments
     Monument* mon_picked = nullptr;
     vector<Monument*> monuments_jouables = this->get_monument_jouables();
-    // Récupération des monuments jouables
-    for (auto mon : monuments_jouables) {
-        if (mon->get_nom() == "HotelDeVille" || mon->get_nom() == "FabriqueDuPereNoel") {
-            auto it = find(monuments_jouables.begin(), monuments_jouables.end(), mon);
-            if (it != monuments_jouables.end()) {
-                monuments_jouables.erase(it);
-            }
-        }
-    }
+    // L'Hotel de ville et la Fabrique du Pere Noel n'ont pas de face "en travaux" :
+    // ils ne peuvent pas etre retournes, on les retire des choix possibles.
+    // (erase() dans une boucle sur le meme vecteur invalidait l'iterateur courant)
+    monuments_jouables.erase(
+            remove_if(monuments_jouables.begin(), monuments_jouables.end(),
+                      [](const Monument* mon) {
+                          return est_monument_de_depart(mon->get_nom());
+                      }),
+            monuments_jouables.end());
     // Gestion d'erreurs
     if (monuments_jouables.empty()) {
         Partie::get_instance()->get_vue_partie()->get_vue_infos()->add_info("Le joueur n'a pas de monument jouable.");
@@ -358,6 +387,7 @@ Monument *Joueur::selectionner_monument() const {
             layout->addLayout(layout_monuments);
             window->setLayout(layout);
             window->exec();
+            delete window;
         }
     }
     // Retourne le monument choisi

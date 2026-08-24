@@ -30,6 +30,12 @@ private:
     unsigned int nb_monuments_win;
     unsigned int de_1;
     unsigned int de_2;
+    // Bonus du Port : le livret parle d'ajouter 2 « au resultat », pas 1 a chaque de.
+    // On le garde donc a part, sinon un de peut afficher 7 ou 8.
+    unsigned int bonus_des;
+    // Le Chalutier fait lancer deux des une seule fois par tour, et ce jet est
+    // partage par tous les Chalutiers de tous les joueurs.
+    unsigned int de_chalutier;
     unsigned int compteur_tour;
     bool rejouer;
     bool moment_achat;
@@ -70,6 +76,14 @@ public:
     unsigned int get_de_2() const {return de_2;}
     void set_de_2(unsigned int de2) {de_2 = de2;}
 
+    // Resultat servant a activer les etablissements : les des plus l'eventuel
+    // bonus du Port. Les valeurs brutes de_1 et de_2 restent dans 1..6, ce dont
+    // depend l'affichage des des et la detection des doubles.
+    unsigned int get_total_des() const {return de_1 + de_2 + bonus_des;}
+    void ajouter_bonus_port() {bonus_des += 2;}
+
+    unsigned int get_de_chalutier() const {return de_chalutier;}
+
 
     //********** Constructeurs et getters **********//
     unsigned int get_joueur_actuel() const {return joueur_actuel;};
@@ -99,7 +113,10 @@ public:
     bool acheter_monu_ia();
     bool acheter_bat_ia();
     void acheter_carte_ia();
-    void acheter_carte(VueCarte* vue_carte);
+    // Rend vrai si la carte a effectivement ete achetee. L'appelant doit s'en
+    // servir : un achat refuse laisse au joueur le benefice du « rien construit »
+    // (effet de l'Aeroport).
+    bool acheter_carte(VueCarte* vue_carte);
     bool acheter_monu(VueCarte* vc);//sous fonction appelee dans acheter_carte
     bool acheter_bat(VueCarte* vc);//sous fonction appelee dans acheter_carte
     bool transfert_argent(unsigned int indice_joueur1, unsigned int indice_joueur2, unsigned int somme);
@@ -107,7 +124,7 @@ public:
 
     vector<Batiment *> get_starter();
 
-    void acheter_carte_event(VueCarte* vc);
+    bool acheter_carte_event(VueCarte* vc);
 };
 
 #endif //MACHI_KORO_PARTIE_H

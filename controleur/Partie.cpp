@@ -49,7 +49,7 @@ Partie* Partie::get_instance() {
     return handler.instance;
 }
 
-Partie::Partie(EditionDeJeu* edition, const map<string, string>& joueurs, const string& shop_type, unsigned int shop_size, const vector<EditionDeJeu *>& extensions) : nb_monuments_win(edition->get_nb_monuments_win()), joueur_actuel(0), de_1(0), de_2(0),compteur_tour(0) {
+Partie::Partie(EditionDeJeu* edition, const map<string, string>& joueurs, const string& shop_type, unsigned int shop_size, const vector<EditionDeJeu *>& extensions) : joueur_actuel(0), nb_monuments_win(0), de_1(0), de_2(0), bonus_des(0), de_chalutier(0), compteur_tour(0) {
     ///Constructeur de Partie
 
     //Initialisation des variables utiles
@@ -80,10 +80,16 @@ Partie::Partie(EditionDeJeu* edition, const map<string, string>& joueurs, const 
                 list_monuments.push_back(monu->clone());
             }
 
-            if (ext->get_nb_monuments_win() > nb_monuments_win)
-                nb_monuments_win = ext->get_nb_monuments_win();
-
         }
+    }
+
+    // La victoire s'obtient en construisant tous ses monuments : 4 en Standard,
+    // 6 avec Marina (« la condition de victoire est d'etre le premier a construire
+    // ses 6 monuments »). On compte donc les monuments reellement constructibles,
+    // en excluant ceux qui sont offerts deja construits en debut de partie.
+    for (auto monu : list_monuments) {
+        if (!Joueur::est_monument_de_depart(monu->get_nom()))
+            nb_monuments_win++;
     }
 
     // Initialisation du starter
@@ -329,20 +335,20 @@ bool Partie::acheter_bat_ia() {
 }
 
 
-void Partie::acheter_carte(VueCarte *vue_carte) {
+bool Partie::acheter_carte(VueCarte *vue_carte) {
     ///Fonction qui permet a un joueur d'acheter une carte (batiment ou monument)
 
     if(vue_carte->getCarte()->get_type() != "Monument") {
-        acheter_bat(vue_carte);
+        return acheter_bat(vue_carte);
     }
     else {
-        acheter_monu(vue_carte);
+        return acheter_monu(vue_carte);
     }
 }
 
 bool Partie::acheter_monu(VueCarte* vue_carte) {
     //fonction qui permet a un joueur donne d'acheter un monument
-    Monument* mon_picked;
+    Monument* mon_picked = nullptr;
     Joueur *joueur_act = tab_joueurs[joueur_actuel];
     vector<Monument*> monuments_dispo;
 
@@ -367,6 +373,12 @@ bool Partie::acheter_monu(VueCarte* vue_carte) {
             }
         }
 
+        // Aucun monument constructible : l'achat echoue, il ne faut pas tirer au sort
+        // dans un tableau vide.
+        if (monuments_dispo.empty()) {
+            return false;
+        }
+
         mon_picked = monuments_dispo[rand() % monuments_dispo.size()];
 
         joueur_act->activer_monument(mon_picked);
@@ -379,25 +391,26 @@ bool Partie::acheter_monu(VueCarte* vue_carte) {
 
 bool Partie::acheter_bat(VueCarte* vue_carte) {
     //fonction qui permet a un joueur donne d'acheter un batiment
-    Batiment* bat_picked;
+    Batiment* bat_picked = nullptr;
     Joueur *joueur_act = tab_joueurs[joueur_actuel];
     vector<Batiment*> bat_shop = shop->get_contenu_v();
 
-    // Fenetre de dialogue pour l'achat
+    // Recherche de la carte cliquee dans le shop
     for(auto& bat : bat_shop){
         if(bat->get_nom() == vue_carte->getCarte()->get_nom()){
             bat_picked = bat;
         }
     }
 
-    //bat_picked = bat_shop[choix - 1];
-    if (bat_picked->get_prix() > joueur_act->get_argent()) {
-        QWidget* pop_up = new QWidget();
-        pop_up->setWindowTitle("Erreur");
-        QLabel* label = new QLabel("Vous n'avez pas assez d'argent pour acheter ce batiment", pop_up);
-        QPushButton* ok = new QPushButton("OK", pop_up);
-        QObject::connect(ok, &QPushButton::clicked, pop_up, &QWidget::close);
+    // La carte n'est plus disponible dans le shop : l'achat echoue.
+    if (bat_picked == nullptr) {
+        vue_partie->get_vue_infos()->add_info("Ce batiment n'est plus disponible dans le shop");
+        return false;
+    }
 
+    if (bat_picked->get_prix() > joueur_act->get_argent()) {
+        QMessageBox::information(vue_partie, "Achat impossible",
+                                 "Vous n'avez pas assez d'argent pour acheter ce batiment");
         return false;
     }
 
@@ -445,7 +458,7 @@ vector<Batiment*> Partie::map_to_vector(const map<Batiment*, unsigned int>& map_
 bool Partie::est_gagnant(unsigned int j) const {
     ///Fonction pour verifier si un joueur a gagne
     Joueur * joueur = tab_joueurs[j];
-    return joueur->get_monument_jouables().size() >= nb_monuments_win;
+    return joueur->nb_monuments_construits() >= nb_monuments_win;
 }
 
 bool Partie::transfert_argent(unsigned int indice_joueur1, unsigned int indice_joueur2, unsigned int somme){
@@ -486,9 +499,7 @@ void Partie::jouer_tour() {
     /// ****************************** ETAPE 1 : Variables + dés *******************************************************
     /// ****************************************************************************************************************
     unsigned int de_casse;
-    unsigned int de_1_temp, de_2_temp;
     bool centre_c_act = false;
-    bool centre_c_possesseur = false;
     vector < Monument * > monuments_joueurs = tab_joueurs[joueur_actuel]->get_monument_jouables();
 
     compteur_tour++;
@@ -501,9 +512,15 @@ void Partie::jouer_tour() {
 
     /// Lancer des des
     de_1 = Partie::lancer_de();
-    de_1_temp = de_1;
-
     de_2 = 0;
+    bonus_des = 0;
+
+    // Le Chalutier fait lancer deux des une seule fois par tour, meme si un joueur en
+    // possede plusieurs, et ce meme jet sert a tous les Chalutiers de la table. Il est
+    // independant des des du tour : ni le Port ni les autres cartes ne l'affectent, et
+    // il ne declenche aucun autre effet.
+    de_chalutier = Partie::lancer_de() + Partie::lancer_de();
+
     de_casse = Partie::lancer_de() + Partie::lancer_de() + Partie::lancer_de() + Partie::lancer_de();
 
     /// ****************************************************************************************************************
@@ -556,13 +573,10 @@ void Partie::jouer_tour() {
 
     vue_partie->update_des();
 
-    de_1_temp = de_1;
-    de_2_temp = de_2;
-
     /// Port + Fabrique du père noel
     for (auto mon: monuments_joueurs) {
-        if (mon->get_nom() == "Port" && ((de_1 + de_2) >= 10) ||
-            mon->get_nom() == "FabriqueDuPereNoel" && de_casse == 16) {
+        if ((mon->get_nom() == "Port" && (de_1 + de_2) >= 10) ||
+            (mon->get_nom() == "FabriqueDuPereNoel" && de_casse == 16)) {
             try {
                 mon->declencher_effet(joueur_actuel);
             }
@@ -579,12 +593,18 @@ void Partie::jouer_tour() {
     /// ****************************************************************************************************************
 
 
+    /// Le livret est explicite sur l'ordre de resolution :
+    /// « rouge en premier, bleu/vert ensuite et enfin violet ».
+
     /// Rouge
     unsigned int j_act_paiement = (joueur_actuel + tab_joueurs.size() - 1) % tab_joueurs.size();
     vue_partie->get_vue_infos()->add_info("Effet des batiments rouges");
 
     while (j_act_paiement != joueur_actuel) {
-        // Regarde si le joueur possede un centre commercial
+        // Le bonus du Centre commercial est propre au joueur encaisse : il doit etre
+        // reevalue a chaque tour de boucle, sans quoi le premier possesseur rencontre
+        // le distribuait a tous les joueurs suivants.
+        bool centre_c_possesseur = false;
         vector < Monument * > monuments_j_act = tab_joueurs[j_act_paiement]->get_monument_jouables();
         for (auto mon: monuments_j_act) {
             if (mon->get_nom() == "CentreCommercial") {
@@ -593,25 +613,15 @@ void Partie::jouer_tour() {
         }
 
         for (auto it: tab_joueurs[j_act_paiement]->get_liste_batiment(Rouge)) {
-            if (find(it.first->get_num_activation().begin(), it.first->get_num_activation().end(), de_1 + de_2) !=
+            if (find(it.first->get_num_activation().begin(), it.first->get_num_activation().end(), get_total_des()) !=
                 it.first->get_num_activation().end()) {
-                if (it.first->get_type() == "restaurant" && centre_c_possesseur) {
-                    for (unsigned int effectif = 0; effectif < it.second; effectif++) {
-                        try {
-                            it.first->declencher_effet(j_act_paiement, 1);
-                        }
-                        catch (exception const &e) {
-                            cerr << "ERREUR : " << e.what() << endl;
-                        }
+                int bonus = (it.first->get_type() == "restaurant" && centre_c_possesseur) ? 1 : 0;
+                for (unsigned int effectif = 0; effectif < it.second; effectif++) {
+                    try {
+                        it.first->declencher_effet(j_act_paiement, bonus);
                     }
-                } else {
-                    for (unsigned int effectif = 0; effectif < it.second; effectif++) {
-                        try {
-                            it.first->declencher_effet(j_act_paiement);
-                        }
-                        catch (exception const &e) {
-                            cerr << "ERREUR : " << e.what() << endl;
-                        }
+                    catch (exception const &e) {
+                        cerr << "ERREUR : " << e.what() << endl;
                     }
                 }
             }
@@ -620,27 +630,11 @@ void Partie::jouer_tour() {
         j_act_paiement = (j_act_paiement + tab_joueurs.size() - 1) % tab_joueurs.size();
     }
 
-    /// Violet
-    vue_partie->get_vue_infos()->add_info("Effet des batiments violets");
-    for (auto it: tab_joueurs[joueur_actuel]->get_liste_batiment(Violet)) {
-        if (find(it.first->get_num_activation().begin(), it.first->get_num_activation().end(), de_1 + de_2) !=
-            it.first->get_num_activation().end()) {
-            for (unsigned int effectif = 0; effectif < it.second; effectif++) {
-                try {
-                    it.first->declencher_effet(joueur_actuel);
-                }
-                catch (exception const &e) {
-                    cerr << "ERREUR : " << e.what() << endl;
-                }
-            }
-        }
-    }
-
     /// Bleu
     vue_partie->get_vue_infos()->add_info("Effet des batiments bleus");
-    for (int i = 0; i < tab_joueurs.size(); i++) {
+    for (unsigned int i = 0; i < tab_joueurs.size(); i++) {
         for (auto it: tab_joueurs[i]->get_liste_batiment(Bleu)) {
-            if (find(it.first->get_num_activation().begin(), it.first->get_num_activation().end(), de_1 + de_2) !=
+            if (find(it.first->get_num_activation().begin(), it.first->get_num_activation().end(), get_total_des()) !=
                 it.first->get_num_activation().end()) {
                 for (unsigned int effectif = 0; effectif < it.second; effectif++) {
                     try {
@@ -657,25 +651,31 @@ void Partie::jouer_tour() {
     /// Vert
     vue_partie->get_vue_infos()->add_info("Effet des batiments verts");
     for (auto it: tab_joueurs[joueur_actuel]->get_liste_batiment(Vert)) {
-        if (find(it.first->get_num_activation().begin(), it.first->get_num_activation().end(), de_1 + de_2) !=
+        if (find(it.first->get_num_activation().begin(), it.first->get_num_activation().end(), get_total_des()) !=
             it.first->get_num_activation().end()) {
-            if (it.first->get_type() == "commerce" && centre_c_act) {
-                for (unsigned int effectif = 0; effectif < it.second; effectif++) {
-                    try {
-                        it.first->declencher_effet(joueur_actuel, 1);
-                    }
-                    catch (exception const &e) {
-                        cerr << "ERREUR : " << e.what() << endl;
-                    }
+            int bonus = (it.first->get_type() == "commerce" && centre_c_act) ? 1 : 0;
+            for (unsigned int effectif = 0; effectif < it.second; effectif++) {
+                try {
+                    it.first->declencher_effet(joueur_actuel, bonus);
                 }
-            } else {
-                for (unsigned int effectif = 0; effectif < it.second; effectif++) {
-                    try {
-                        it.first->declencher_effet(joueur_actuel);
-                    }
-                    catch (exception const &e) {
-                        cerr << "ERREUR : " << e.what() << endl;
-                    }
+                catch (exception const &e) {
+                    cerr << "ERREUR : " << e.what() << endl;
+                }
+            }
+        }
+    }
+
+    /// Violet (resolu en dernier)
+    vue_partie->get_vue_infos()->add_info("Effet des batiments violets");
+    for (auto it: tab_joueurs[joueur_actuel]->get_liste_batiment(Violet)) {
+        if (find(it.first->get_num_activation().begin(), it.first->get_num_activation().end(), get_total_des()) !=
+            it.first->get_num_activation().end()) {
+            for (unsigned int effectif = 0; effectif < it.second; effectif++) {
+                try {
+                    it.first->declencher_effet(joueur_actuel);
+                }
+                catch (exception const &e) {
+                    cerr << "ERREUR : " << e.what() << endl;
                 }
             }
         }
@@ -733,10 +733,6 @@ void Partie::suite_tour(bool achat_ok){
     if (!achat_ok) {
         vue_partie->get_vue_infos()->add_info("Vous n'avez rien acheté");
 
-        /// Banque
-        if (tab_joueurs[joueur_actuel]->get_argent() < 2)
-            tab_joueurs[joueur_actuel]->set_argent(2);
-
         /// Aeroport
         auto it_earo = find_if(monuments_joueurs.begin(), monuments_joueurs.end(), [](Monument* m){return m->get_nom() == "Aeroport";});
         if (it_earo != monuments_joueurs.end()){
@@ -756,14 +752,29 @@ void Partie::suite_tour(bool achat_ok){
     /// ****************************************************************************************************************
 
     /// Ouverture
+    // Un etablissement ferme rouvre lorsque les des l'activent a nouveau, selon les
+    // memes fenetres que ses revenus : les bleus pendant le tour de n'importe quel
+    // joueur, les rouges pendant le tour des autres joueurs, les verts et violets
+    // pendant le tour de leur proprietaire uniquement. La reouverture ne declenche
+    // pas l'effet de la carte pour cette fois.
     vue_partie->get_vue_infos()->add_info("Ouverture des batiments");
-    for (auto bat : tab_joueurs[joueur_actuel]->get_liste_batiment_fermes()) {
-        if (find(bat->get_num_activation().begin(), bat->get_num_activation().end(), de_1 + de_2) != bat->get_num_activation().end()) {
-            try {
-                tab_joueurs[joueur_actuel]->ouvrir_batiment(bat);
+    for (unsigned int j = 0; j < tab_joueurs.size(); j++) {
+        for (auto bat : tab_joueurs[j]->get_liste_batiment_fermes()) {
+            bool activable;
+            switch (bat->get_couleur()) {
+                case Bleu:   activable = true;                break;
+                case Rouge:  activable = (j != joueur_actuel); break;
+                default:     activable = (j == joueur_actuel); break;
             }
-            catch(exception const& e){
-                cerr << "ERREUR : " << e.what() << endl;
+            if (!activable) continue;
+
+            if (find(bat->get_num_activation().begin(), bat->get_num_activation().end(), get_total_des()) != bat->get_num_activation().end()) {
+                try {
+                    tab_joueurs[j]->ouvrir_batiment(bat);
+                }
+                catch(exception const& e){
+                    cerr << "ERREUR : " << e.what() << endl;
+                }
             }
         }
     }
@@ -791,6 +802,7 @@ void Partie::suite_tour(bool achat_ok){
     }
     de_1 = 0;
     de_2 = 0;
+    bonus_des = 0;
 
     /// Update la vue
     vue_partie->set_bouton_rien_faire(false);
@@ -814,9 +826,13 @@ void Partie::suite_tour(bool achat_ok){
     /// Vérifie si la partie est finie
     if (est_gagnant(joueur_actuel)) {
         /// Fin de la partie
-        vue_partie->close();
-        QMessageBox::information(vue_partie, "Fin de la partie", "Le joueur " + QString::fromStdString(tab_joueurs[joueur_actuel]->get_nom()) + " a gagne !");
-//        QCoreApplication::quit();
+        // La fenetre porte Qt::WA_DeleteOnClose : la fermer programme sa destruction.
+        // On affiche donc le message AVANT de fermer, sinon on l'accroche a un parent
+        // en cours de destruction, et on oublie le pointeur juste apres.
+        VuePartie* fenetre_finie = vue_partie;
+        QMessageBox::information(fenetre_finie, "Fin de la partie", "Le joueur " + QString::fromStdString(tab_joueurs[joueur_actuel]->get_nom()) + " a gagne !");
+        vue_partie = nullptr;
+        fenetre_finie->close();
     } else {
         /// Fin du tour
         if (!rejouer) {
@@ -872,6 +888,8 @@ unsigned int Partie::selectionner_joueur(const vector<Joueur*>& tab_joueurs, uns
             window->setLayout(layout_joueurs);
             // Affichage de la fenêtre
             window->exec();
+            // Choix obligatoire, mais on ne garde pas la fenetre precedente en memoire.
+            delete window;
         }
     }
     Partie::get_instance()->get_vue_partie()->get_vue_infos()->add_info("Joueur sélectionné : "+ tab_joueurs[selection]->get_nom());
@@ -885,6 +903,6 @@ unsigned int Partie::lancer_de() {
     return dis(gen);
 }
 
-void Partie::acheter_carte_event(VueCarte* vc) {
-    acheter_carte(vc);
+bool Partie::acheter_carte_event(VueCarte* vc) {
+    return acheter_carte(vc);
 }

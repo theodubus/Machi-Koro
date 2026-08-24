@@ -244,8 +244,8 @@ void VueJoueur::clicked_acheter_event(){
     Partie *partie = Partie::get_instance();
     partie->get_vue_partie()->get_vue_carte()->close();
     VueCarte* carte = partie->get_vue_partie()->get_vue_joueur()->get_carte_choisie();
-    partie->acheter_carte_event(carte);
+    bool achat_reussi = partie->acheter_carte_event(carte);
 
     carte_choisie = nullptr;
-    partie->suite_tour(true);
+    partie->suite_tour(achat_reussi);
 }
