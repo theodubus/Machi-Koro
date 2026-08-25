@@ -88,11 +88,16 @@ Ne pas revenir dessus sans une source au moins équivalente.
 | Hôtel de ville, Fabrique du Père Noël | monuments offerts construits, hors condition de victoire | livret et fiche produit |
 | Fabrique : lancé cassé | 3 pièces **et** relance du même nombre de dés | règle de la carte |
 
-Un point reste sans source : le **Club privé** prend « toutes les pièces » du
-joueur actif. Il porte l'icône tasse, donc le Centre commercial devrait en
-principe le majorer d'une pièce — mais on ne majore pas « tout ce qu'il a ». Ni
-le livret ni la FAQ ne tranchent. Le code ne majore pas, ce qui est la lecture
-défendable ; ne pas changer sans source.
+Le **Club privé** face au Centre commercial a l'air d'un point litigieux, mais
+la question est **sans objet**. La carte prend « toutes les pièces » du joueur
+actif ; le supplément du Centre commercial est, pour toutes les cartes rouges,
+prélevé sur ce même joueur. Une fois sa bourse vidée, il n'y a pas de pièce
+supplémentaire à prendre. Les deux lectures — majorer ou non — donnent
+exactement le même résultat quelle que soit sa fortune, y compris zéro. Vérifié
+par une sonde comparant les deux à 0, 1, 5, 8 et 20 pièces.
+
+Inutile donc de chercher une source, et inutile d'ajouter `ctx.supplement` dans
+`ClubPrive::declencher_effet()` : cela ne changerait rien.
 
 Deux valeurs ne reposent sur aucune source publiée, et ne le peuvent pas :
 
