@@ -13,7 +13,10 @@ EditionDeJeu::EditionDeJeu(const string& nom_edition) : nom(nom_edition) {
         /// Constructeur de Deluxe
         nom = "Deluxe";
         est_edition = true;
-        nb_joueurs_max = 4;
+        // Deluxe est annonce « pour 2 a 5 joueurs » par l'editeur, contrairement au
+        // jeu de base et a ses deux extensions, tous donnes « pour 2 a 4 joueurs ».
+        nb_joueurs_max = 5;
+        // 6 monuments dans la boite, 5 a construire pour gagner.
         nb_monuments_win = 5;
 
         /// Liste des monuments specifiques a Deluxe
@@ -56,7 +59,7 @@ EditionDeJeu::EditionDeJeu(const string& nom_edition) : nom(nom_edition) {
         // Batiments rouges
         batiment.insert(pair<Batiment*, unsigned int>(new Cafe(), 5));
         batiment.insert(pair<Batiment*, unsigned int>(new ClubPrive(), 5));
-        batiment.insert(pair<Batiment*, unsigned int>(new StandDeHamburger(), 5));
+        batiment.insert(pair<Batiment*, unsigned int>(new MoonsterBurger(), 5));
         batiment.insert(pair<Batiment*, unsigned int>(new Pizzeria(), 5));
         batiment.insert(pair<Batiment*, unsigned int>(new Restaurant(), 5));
         batiment.insert(pair<Batiment*, unsigned int>(new Restaurant5Etoiles(), 5));
@@ -110,6 +113,7 @@ EditionDeJeu::EditionDeJeu(const string& nom_edition) : nom(nom_edition) {
         // Batiments violets
         batiment.insert(pair<Batiment*, unsigned int>(new Arboretum(), 4));
         batiment.insert(pair<Batiment*, unsigned int>(new EntrepriseRenovation(), 4));
+        batiment.insert(pair<Batiment*, unsigned int>(new Startup(), 4));
 
         // Batiments verts
         batiment.insert(pair<Batiment*, unsigned int>(new BanqueDeMinivilles(), 6));
@@ -118,9 +122,9 @@ EditionDeJeu::EditionDeJeu(const string& nom_edition) : nom(nom_edition) {
         batiment.insert(pair<Batiment*, unsigned int>(new MoonsterSoda(), 6));
         batiment.insert(pair<Batiment*, unsigned int>(new Epicerie(), 6));
         batiment.insert(pair<Batiment*, unsigned int>(new EntrepriseDeDemenagement(), 6));
-        batiment.insert(pair<Batiment*, unsigned int>(new Vignoble(), 6));
 
         // Batiments bleus
+        batiment.insert(pair<Batiment*, unsigned int>(new Vignoble(), 6));
         batiment.insert(pair<Batiment*, unsigned int>(new ChampMais(), 6));
 
         // Batiments rouges
@@ -133,7 +137,9 @@ EditionDeJeu::EditionDeJeu(const string& nom_edition) : nom(nom_edition) {
         nom = "Marina";
         est_edition = false;
         nb_joueurs_max = 4;
-        nb_monuments_win = 5;
+        // « Il y a 2 nouveaux monuments a construire. Donc dorenavant, la condition
+        // de victoire est d'etre le premier a construire ses 6 monuments. »
+        nb_monuments_win = 6;
 
         /// Constructeur de Marina
         // Liste des monuments
@@ -153,7 +159,7 @@ EditionDeJeu::EditionDeJeu(const string& nom_edition) : nom(nom_edition) {
         batiment.insert(pair<Batiment*, unsigned int>(new Stade(), 1));
 
         // Batiments rouges
-        batiment.insert(pair<Batiment*, unsigned int>(new StandDeHamburger(), 6));
+        batiment.insert(pair<Batiment*, unsigned int>(new MoonsterBurger(), 6));
         batiment.insert(pair<Batiment*, unsigned int>(new SushiBar(), 6));
         batiment.insert(pair<Batiment*, unsigned int>(new Pizzeria(), 6));
 
@@ -176,8 +182,13 @@ EditionDeJeu::EditionDeJeu(const string& nom_edition) : nom(nom_edition) {
         /// Constructeur de Custom
         nom = "Custom";
         est_edition = true;
-        nb_joueurs_max = 4;
-        nb_monuments_win = 8;
+        // Custom n'existe que dans ce projet : aucune regle publiee ne la couvre.
+        // On conserve la limite choisie par les auteurs.
+        nb_joueurs_max = 6;
+        // 8 monuments, dont l'Hotel de ville et la Fabrique du Pere Noel offerts
+        // deja construits : il en reste 6 a batir. La valeur d'origine, 8, comptait
+        // les monuments offerts ; l'exigence pour le joueur est inchangee.
+        nb_monuments_win = 6;
 
         /// Liste des monuments specifiques a Custom
         monument.push_back(new Aeroport());
@@ -199,6 +210,7 @@ EditionDeJeu::EditionDeJeu(const string& nom_edition) : nom(nom_edition) {
         batiment.insert(pair<Batiment*, unsigned int>(new MaisonEdition(), 2));
         batiment.insert(pair<Batiment*, unsigned int>(new MgaGameCenter(), 2));
         batiment.insert(pair<Batiment*, unsigned int>(new Stade(), 2));
+        batiment.insert(pair<Batiment*, unsigned int>(new Startup(), 2));
 
         // Batiments verts
         batiment.insert(pair<Batiment*, unsigned int>(new BanqueDeMinivilles(), 4));
@@ -233,7 +245,7 @@ EditionDeJeu::EditionDeJeu(const string& nom_edition) : nom(nom_edition) {
         batiment.insert(pair<Batiment*, unsigned int>(new Pizzeria(), 4));
         batiment.insert(pair<Batiment*, unsigned int>(new Restaurant, 4));
         batiment.insert(pair<Batiment*, unsigned int>(new Restaurant5Etoiles(), 4));
-        batiment.insert(pair<Batiment*, unsigned int>(new StandDeHamburger(), 4));
+        batiment.insert(pair<Batiment*, unsigned int>(new MoonsterBurger(), 4));
         batiment.insert(pair<Batiment*, unsigned int>(new SushiBar(), 4));
     }
     else {

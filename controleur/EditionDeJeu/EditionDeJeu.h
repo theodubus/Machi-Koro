@@ -60,7 +60,7 @@
 #include "Pizzeria.h"
 #include "Restaurant.h"
 #include "Restaurant5Etoiles.h"
-#include "StandDeHamburger.h"
+#include "MoonsterBurger.h"
 #include "SushiBar.h"
 
 /// Importation des batiments violets
@@ -71,6 +71,7 @@
 #include "EntrepriseRenovation.h"
 #include "MaisonEdition.h"
 #include "MgaGameCenter.h"
+#include "Startup.h"
 #include "Stade.h"
 
 /// Importation des controleurs

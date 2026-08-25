@@ -33,9 +33,10 @@ include_directories(controleur/EditionDeJeu)
 include_directories(exception)
 include_directories(joueur)
 
-add_executable(Machi_Koro
-        main.cpp
-
+# Sources du jeu, main.cpp excepte : partagees entre l'executable et l'outil de
+# verification des cartes, pour qu'aucun des deux ne puisse deriver de l'autre.
+set(MACHI_KORO_SOURCES
+        
         cartes/VueCarte.cpp
         cartes/VueCarte.h
 
@@ -106,6 +107,8 @@ add_executable(Machi_Koro
         cartes/batiment/violet/MaisonEdition.h
         cartes/batiment/violet/Stade.cpp
         cartes/batiment/violet/Stade.h
+        cartes/batiment/violet/Startup.cpp
+        cartes/batiment/violet/Startup.h
         cartes/batiment/violet/MgaGameCenter.cpp
         cartes/batiment/violet/MgaGameCenter.h
 
@@ -119,8 +122,8 @@ add_executable(Machi_Koro
         cartes/batiment/rouge/Restaurant5Etoiles.h
         cartes/batiment/rouge/Restaurant.cpp
         cartes/batiment/rouge/Restaurant.h
-        cartes/batiment/rouge/StandDeHamburger.cpp
-        cartes/batiment/rouge/StandDeHamburger.h
+        cartes/batiment/rouge/MoonsterBurger.cpp
+        cartes/batiment/rouge/MoonsterBurger.h
         cartes/batiment/rouge/SushiBar.cpp
         cartes/batiment/rouge/SushiBar.h
 
@@ -172,7 +175,34 @@ add_executable(Machi_Koro
         exception/gameExeption.h
         controleur/VueDes.cpp controleur/VueDes.h)
 
+add_executable(Machi_Koro main.cpp ${MACHI_KORO_SOURCES})
+
 target_link_libraries(Machi_Koro
+        Qt::Core
+        Qt::Gui
+        Qt::Widgets
+        Qt::Multimedia
+        )
+
+
+# Verification des donnees de cartes.
+#
+# Compare chaque carte creee par le jeu a la table de reference
+# cartes/donnees_cartes.h, transcrite depuis les visuels du dossier assets/ :
+# cout, numeros d'activation, couleur, type et image. Cible separee : elle ne
+# change rien au jeu et peut tourner en integration continue.
+#
+#   cmake --build build --target verifier_cartes
+#   cd build && ./verifier_cartes
+#
+# Doit etre lance depuis un sous-repertoire du depot, comme le jeu, pour que les
+# chemins ../assets/... se resolvent.
+add_executable(verifier_cartes EXCLUDE_FROM_ALL
+        outils/verifier_cartes.cpp
+        cartes/donnees_cartes.h
+        ${MACHI_KORO_SOURCES})
+
+target_link_libraries(verifier_cartes
         Qt::Core
         Qt::Gui
         Qt::Widgets

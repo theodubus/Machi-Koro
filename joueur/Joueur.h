@@ -27,6 +27,11 @@ class Joueur {
         vector<Batiment*> liste_batiment_fermes;
 
         map<Monument*, bool> liste_monument;
+        // Jetons poses sur une carte du joueur, indexes par nom de carte.
+        // La Startup (Green Valley) accumule ainsi des pieces au fil des tours.
+        // Les cartes etant partagees entre les joueurs, ce compteur ne peut pas
+        // vivre dans le Batiment : il appartient au joueur.
+        map<string, unsigned int> jetons;
         map<couleur_bat, map<Batiment*, unsigned int>> liste_batiment;
 
     public:
@@ -51,6 +56,13 @@ class Joueur {
         vector<unsigned int> get_repartition_argent() const;
         vector<Monument*> get_monument_jouables() const;
         vector<Batiment* > get_liste_batiment_fermes() const {return liste_batiment_fermes;};
+
+        // Nombre de jetons poses sur la carte nommee, 0 si elle n'en porte aucun.
+        unsigned int get_jetons(const string& nom_carte) const {
+            auto it = jetons.find(nom_carte);
+            return it == jetons.end() ? 0 : it->second;
+        }
+        void poser_jeton(const string& nom_carte) { jetons[nom_carte]++; }
 
 
         /***** Setters *****/
