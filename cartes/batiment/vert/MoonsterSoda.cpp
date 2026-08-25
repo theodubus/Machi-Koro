@@ -12,9 +12,9 @@ MoonsterSoda::MoonsterSoda()
 
 void MoonsterSoda::declencher_effet(const ContexteDeclenchement& ctx) const {
     /// Effet du MoonsterSoda
-    unsigned int j_act_index =  ctx.joueur_actuel;
+    unsigned int index_possesseur =  ctx.possesseur;
     Partie * partie = Partie::get_instance();
-    Joueur* j_actuel = partie->get_tab_joueurs()[j_act_index];
+    Joueur* j_actuel = partie->get_tab_joueurs()[index_possesseur];
     vector<Joueur*> tab_joueurs = partie->get_tab_joueurs();
 
     // On compte le nombre d'etablissements de type restaurant de tous les joueurs

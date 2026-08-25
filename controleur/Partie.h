@@ -51,6 +51,19 @@ private:
     };
     static Handler handler;
 
+    /// Declenche un monument du joueur courant, s'il le possede et si la
+    /// condition est remplie. Rend true si le monument a ete declenche.
+    ///
+    /// Les huit monuments se declenchent chacun a un moment precis du tour et
+    /// sous sa propre condition : la Gare avant que le lance ne fixe le nombre
+    /// de des, la Fabrique du Pere Noel des que les des tombent, le Port si le
+    /// total atteint 10, l'Aeroport seulement si rien n'a ete achete. Cet ordre
+    /// est la structure meme du tour : il reste ecrit noir sur blanc dans
+    /// jouer_tour(). Seule la recherche du monument, repetee huit fois a
+    /// l'identique, est factorisee ici.
+    bool activer_monument(const vector<Monument*>& monuments, const string& nom,
+                          bool condition = true);
+
     //// Constructeur et Destructeur ////
     ~Partie();
     explicit Partie(EditionDeJeu* edition, const map<string, string>& joueurs, const string& shop_type, unsigned int shop_size, const vector<EditionDeJeu *>& extensions = vector<EditionDeJeu *>());

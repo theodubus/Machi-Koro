@@ -99,8 +99,14 @@ Deux valeurs ne reposent sur aucune source publiée, et ne le peuvent pas :
 - Les objets `Batiment` sont **partagés entre les joueurs** : un même pointeur
   sert à tous. Aucun état propre à un joueur ne peut y vivre. C'est pourquoi les
   jetons de la Startup sont stockés dans `Joueur`.
-- `Joueur::get_liste_batiment()` renvoie ses `map` **par valeur**. Itérer dessus
-  est sûr même si l'on modifie le joueur pendant la boucle, mais c'est coûteux.
+- `Joueur::get_liste_batiment()` renvoie ses `map` **par valeur**, et il faut que
+  ça reste ainsi. Les boucles de résolution des effets itèrent dessus tout en
+  déclenchant des cartes qui modifient la ville du joueur : l'Entreprise de
+  déménagement, **verte**, retire un bâtiment pendant la boucle verte ;
+  l'Entreprise de rénovation et le MGA Game Center en ferment pendant la boucle
+  violette. Rendre une référence invaliderait l'itérateur de la boucle en cours.
+  L'audit avait classé cette copie en défaut de qualité : c'est une erreur, la
+  corriger introduirait un comportement indéfini.
 - Le déroulement du tour passe par des `QTimer::singleShot`. Ne pas revenir à des
   appels directs : `jouer_tour → acheter_carte_ia → suite_tour → jouer_tour`
   empilait la partie entière sur la pile d'appels.
@@ -151,14 +157,9 @@ des chaînes ; `beneficie_centre_commercial()` posée à la carte ; point d'accr
 `a_l_achat()` sur `Batiment` ; `ContexteDeclenchement` à la place du couple
 `(possesseur, bonus)`.
 
-Restent deux nettoyages sans risque, laissés de côté pour garder au remaniement
-un seul type de modification vérifiable :
-
-- une douzaine de cartes gardent un `unsigned int j_act_index = ctx.joueur_actuel;`
-  devenu inutile ;
-- plusieurs cartes bleues nomment `joueur_actuel` une variable locale qui
-  désigne en fait le **possesseur** de la carte, pas le joueur dont c'est le
-  tour.
+Reste un nettoyage : plusieurs cartes bleues nomment `joueur_actuel` une
+variable locale qui désigne en fait le **possesseur** de la carte, pas le joueur
+dont c'est le tour.
 
 Le contrôleur ne branche plus sur le nom d'un **bâtiment** pour lui appliquer un
 effet. Il cite encore dix cartes par leur nom, mais pour autre chose : les six

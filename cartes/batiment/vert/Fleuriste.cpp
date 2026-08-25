@@ -12,9 +12,9 @@ Fleuriste::Fleuriste()
 
 void Fleuriste::declencher_effet(const ContexteDeclenchement& ctx) const {
     /// Effet de la FabriqueDeMeubles
-    unsigned int j_act_index =  ctx.joueur_actuel;
+    unsigned int index_possesseur =  ctx.possesseur;
     Partie * partie = Partie::get_instance();
-    Joueur* j_actuel = partie->get_tab_joueurs()[j_act_index];
+    Joueur* j_actuel = partie->get_tab_joueurs()[index_possesseur];
 
     unsigned int nb_champs_fleur = 0;
 

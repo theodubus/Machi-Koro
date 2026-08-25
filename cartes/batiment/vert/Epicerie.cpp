@@ -12,9 +12,9 @@ Epicerie::Epicerie()
 
 void Epicerie::declencher_effet(const ContexteDeclenchement& ctx) const{
     /// Effet de l'Epicerie
-    unsigned int j_act_index =  ctx.joueur_actuel;
+    unsigned int index_possesseur =  ctx.possesseur;
     Partie * partie = Partie::get_instance();
-    Joueur* j_actuel = partie->get_tab_joueurs()[j_act_index];
+    Joueur* j_actuel = partie->get_tab_joueurs()[index_possesseur];
 
 
     if (j_actuel->nb_monuments_construits() < 2){

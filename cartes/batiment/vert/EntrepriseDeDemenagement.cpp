@@ -14,9 +14,9 @@ void EntrepriseDeDemenagement::declencher_effet(const ContexteDeclenchement& ctx
     /// Effet de l'EntrepriseDeDemenagement
 
     /// DON DE L'ETABLISSEMENT
-    unsigned int j_act_index = ctx.joueur_actuel;
+    unsigned int index_possesseur = ctx.possesseur;
     Partie * partie = Partie::get_instance();
-    Joueur* j_actuel = partie->get_tab_joueurs()[j_act_index];
+    Joueur* j_actuel = partie->get_tab_joueurs()[index_possesseur];
 
 
     // On verifie que le joueur possede au moins un batiment non violet
@@ -33,7 +33,7 @@ void EntrepriseDeDemenagement::declencher_effet(const ContexteDeclenchement& ctx
     vector<Joueur*> tab_joueurs = Partie::get_instance()->get_tab_joueurs();
 
     // On demande a l'utilisateur de selectionner un joueur
-    unsigned int joueur_selectionne = Partie::selectionner_joueur(tab_joueurs, j_act_index);
+    unsigned int joueur_selectionne = Partie::selectionner_joueur(tab_joueurs, index_possesseur);
 
     // On demande a l'utilisateur de selectionner un de ses batiments
     Batiment* batiment = j_actuel->selectionner_batiment();

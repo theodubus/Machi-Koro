@@ -12,9 +12,9 @@ Boulangerie::Boulangerie()
 
 void Boulangerie::declencher_effet(const ContexteDeclenchement& ctx) const {
     /// Effet de la Boulangerie
-    unsigned int j_act_index =  ctx.joueur_actuel;
+    unsigned int index_possesseur =  ctx.possesseur;
     Partie * partie = Partie::get_instance();
-    Joueur* j_actuel = partie->get_tab_joueurs()[j_act_index];
+    Joueur* j_actuel = partie->get_tab_joueurs()[index_possesseur];
     partie->get_vue_partie()->get_vue_infos()->add_info("Activation de l'effet de la carte Boulangerie du joueur \""+ j_actuel->get_nom() + "\"");
 
 
