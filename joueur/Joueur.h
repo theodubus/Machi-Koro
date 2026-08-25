@@ -32,6 +32,7 @@ class Joueur {
         // Les cartes etant partagees entre les joueurs, ce compteur ne peut pas
         // vivre dans le Batiment : il appartient au joueur.
         map<string, unsigned int> jetons;
+        map<string, unsigned int> jetons_en_attente;
         map<couleur_bat, map<Batiment*, unsigned int>> liste_batiment;
 
     public:
@@ -63,6 +64,14 @@ class Joueur {
             return it == jetons.end() ? 0 : it->second;
         }
         void poser_jeton(const string& nom_carte) { jetons[nom_carte]++; }
+
+        // Certaines cartes posent leur jeton « a la fin de votre tour » : on
+        // l'enregistre a l'activation et Partie::terminer_tour() le pose.
+        void programmer_jeton(const string& nom_carte) { jetons_en_attente[nom_carte]++; }
+        void poser_jetons_en_attente() {
+            for (const auto& j : jetons_en_attente) jetons[j.first] += j.second;
+            jetons_en_attente.clear();
+        }
 
 
         /***** Setters *****/

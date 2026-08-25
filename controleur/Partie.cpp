@@ -523,6 +523,10 @@ void Partie::jouer_tour() {
     // il ne declenche aucun autre effet.
     de_chalutier = Partie::lancer_de() + Partie::lancer_de();
 
+    // Simulation du « lance de des casse » de la Fabrique du Pere Noel : un de qui
+    // bascule sur une arete n'existe pas en numerique, on tire donc quatre des a part
+    // et on considere le lance casse s'ils totalisent 16, soit environ 9,6 % des
+    // tours. Ce tirage n'entre dans aucun autre calcul.
     de_casse = Partie::lancer_de() + Partie::lancer_de() + Partie::lancer_de() + Partie::lancer_de();
 
     /// ****************************************************************************************************************
@@ -556,6 +560,21 @@ void Partie::jouer_tour() {
         }
     }
 
+    /// Fabrique du Pere Noel
+    /// Un lance casse se constate au moment ou les des tombent : cet effet se resout
+    /// donc juste apres le lance, une fois la Gare passee puisqu'elle decide combien
+    /// de des sont lances, et avant que la Tour radio ne propose de relancer.
+    auto it_fpn = find_if(monuments_joueurs.begin(), monuments_joueurs.end(),
+                          [](Monument *m) { return m->get_nom() == "FabriqueDuPereNoel"; });
+    if (it_fpn != monuments_joueurs.end() && de_casse == 16) {
+        try {
+            (*it_fpn)->declencher_effet(joueur_actuel);
+        }
+        catch (exception const &e) {
+            cerr << "ERREUR : " << e.what() << endl;
+        }
+    }
+
     //une fois que tout les effets en rapport avec les dés sont joués, on update l'affichage des dés
     vue_partie->update_des();
 
@@ -575,10 +594,9 @@ void Partie::jouer_tour() {
 
     vue_partie->update_des();
 
-    /// Port + Fabrique du père noel
+    /// Port
     for (auto mon: monuments_joueurs) {
-        if ((mon->get_nom() == "Port" && (de_1 + de_2) >= 10) ||
-            (mon->get_nom() == "FabriqueDuPereNoel" && de_casse == 16)) {
+        if (mon->get_nom() == "Port" && (de_1 + de_2) >= 10) {
             try {
                 mon->declencher_effet(joueur_actuel);
             }
@@ -821,6 +839,10 @@ void Partie::suite_tour(bool achat_ok){
 }
 
 void Partie::terminer_tour() {
+    // Les cartes qui posent un jeton « a la fin de votre tour » l'ont programme
+    // pendant la phase de revenus : c'est ici qu'il se pose.
+    tab_joueurs[joueur_actuel]->poser_jetons_en_attente();
+
     if (vue_partie->get_vue_carte() != nullptr) {
         vue_partie->get_vue_carte()->close();
         vue_partie->set_vue_carte(nullptr);

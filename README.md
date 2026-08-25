@@ -64,8 +64,13 @@ Deluxe et Custom intègrent déjà leur contenu.
 | **Marina** | Le Port et l'Aéroport, deux monuments de plus à construire, ainsi que l'Hôtel de ville, offert construit dès le départ ; les cartes maritimes (Petit bateau de pêche, Chalutier, Sushi bar) dont l'effet dépend du Port |
 | **Green Valley** | 13 établissements : l'Arboretum, l'Entreprise de rénovation et la Startup ; la Cave à vin, le Champ de maïs, le Club privé, le Restaurant 5 étoiles. Introduit les établissements **fermés**, qui ne produisent plus d'effet jusqu'à ce que les dés les réactivent |
 
-Deux cartes n'existent que dans l'édition Custom : le **MGA Game Center**, qui
-rejoue l'effet d'un de vos établissements, et la **Fabrique du Père Noël**.
+Le **MGA Game Center** et la **Fabrique de jouets du Père Noël** sont deux
+cartes promotionnelles parues avec l'extension Minivilles 5-6 ; elles ne sont
+disponibles ici que dans l'édition Custom. La Fabrique est un monument déjà
+construit en début de partie : un *lancer cassé* — un dé qui ne repose pas à
+plat — rapporte 3 pièces et fait relancer le même nombre de dés, une fois par
+tour au maximum. Un dé basculé n'existant pas en numérique, sa survenue est
+simulée par un tirage séparé, dans environ 9,6 % des tours.
 
 ## Les cartes
 
@@ -96,7 +101,7 @@ acquis et modifient les règles du tour.
 | Port | +2 au résultat lorsqu'il atteint 10 |
 | Aéroport | 10 pièces si rien n'a été acheté pendant le tour |
 | Hôtel de ville | 1 pièce si le joueur est ruiné avant d'acheter — offert construit, il ne compte pas pour la victoire |
-| Fabrique du Père Noël | 3 pièces sur un jet de dés cassé |
+| Fabrique du Père Noël | 3 pièces et une relance quand le jet de dés est « cassé » — offerte construite, elle ne compte pas pour la victoire |
 
 Chaque joueur démarre avec **3 pièces**, un **Champ de blé** et une
 **Boulangerie**.
