@@ -8,7 +8,7 @@ Foret::Foret() :
         "../assets/batiments/Bleu/Foret.png",
         Bleu,
         list<unsigned int>{5},
-        "engrenage"){}
+        type_bat::Engrenage){}
 ///Constructeur de Foret
 
 void Foret::declencher_effet(unsigned int possesseur, int bonus) const {

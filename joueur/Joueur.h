@@ -97,7 +97,7 @@ class Joueur {
         // monument qu'il soit construit ou non.
         bool monument_construit(const string& nom_mon) const;
 
-        unsigned int count_type(const string& type) const;
+        unsigned int count_type(type_bat type) const;
 
         void activer_monument(Monument *mon);
         void desactiver_monument(Monument *mon);

@@ -8,7 +8,7 @@ Epicerie::Epicerie()
                    "../assets/batiments/Vert/Epicerie.png",
                    Vert,
                    {2},
-                   "commerce") {}
+                   type_bat::Commerce) {}
 
 void Epicerie::declencher_effet(unsigned int possesseur, int bonus) const{
     /// Effet de l'Epicerie

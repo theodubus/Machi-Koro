@@ -328,9 +328,7 @@ bool Partie::acheter_bat_ia() {
     }
 
     joueur_act->set_argent(joueur_act->get_argent() - bat_picked->get_prix());
-    if (bat_picked->get_nom() == "BanqueDeMinivilles") {
-        joueur_act->set_argent(joueur_act->get_argent() + 5);
-    }
+    bat_picked->a_l_achat(joueur_actuel);
 
     vue_partie->get_vue_infos()->add_info("Le joueur \"" + tab_joueurs[joueur_actuel]->get_nom() + "\" à acheté la carte " + bat_picked->get_nom() + "\n\n");
     return true;
@@ -340,7 +338,7 @@ bool Partie::acheter_bat_ia() {
 bool Partie::acheter_carte(VueCarte *vue_carte) {
     ///Fonction qui permet a un joueur d'acheter une carte (batiment ou monument)
 
-    if(vue_carte->getCarte()->get_type() != "Monument") {
+    if(!vue_carte->getCarte()->est_monument()) {
         return acheter_bat(vue_carte);
     }
     else {
@@ -426,9 +424,7 @@ bool Partie::acheter_bat(VueCarte* vue_carte) {
     }
 
     joueur_act->set_argent(joueur_act->get_argent() - bat_picked->get_prix());
-    if (bat_picked->get_nom() == "BanqueDeMinivilles") {
-        joueur_act->set_argent(joueur_act->get_argent() + 5);
-    }
+    bat_picked->a_l_achat(joueur_actuel);
 
     vue_partie->get_vue_infos()->add_info("Le joueur \"" + tab_joueurs[joueur_actuel]->get_nom() + "\" a achete la carte " + bat_picked->get_nom() + "\n\n");
 
@@ -635,7 +631,7 @@ void Partie::jouer_tour() {
         for (auto it: tab_joueurs[j_act_paiement]->get_liste_batiment(Rouge)) {
             if (find(it.first->get_num_activation().begin(), it.first->get_num_activation().end(), get_total_des()) !=
                 it.first->get_num_activation().end()) {
-                int bonus = (it.first->get_type() == "restaurant" && centre_c_possesseur) ? 1 : 0;
+                int bonus = (centre_c_possesseur && it.first->beneficie_centre_commercial()) ? 1 : 0;
                 for (unsigned int effectif = 0; effectif < it.second; effectif++) {
                     try {
                         it.first->declencher_effet(j_act_paiement, bonus);
@@ -673,7 +669,7 @@ void Partie::jouer_tour() {
     for (auto it: tab_joueurs[joueur_actuel]->get_liste_batiment(Vert)) {
         if (find(it.first->get_num_activation().begin(), it.first->get_num_activation().end(), get_total_des()) !=
             it.first->get_num_activation().end()) {
-            int bonus = (it.first->get_type() == "commerce" && centre_c_act) ? 1 : 0;
+            int bonus = (centre_c_act && it.first->beneficie_centre_commercial()) ? 1 : 0;
             for (unsigned int effectif = 0; effectif < it.second; effectif++) {
                 try {
                     it.first->declencher_effet(joueur_actuel, bonus);

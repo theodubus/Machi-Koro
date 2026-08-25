@@ -8,7 +8,7 @@ ChampMais::ChampMais() :
         "../assets/batiments/Bleu/ChampMais.png",
         Bleu,
         list<unsigned int>{3,4},
-        "champ"){}
+        type_bat::Champ){}
 ///Constructeur de Ferme
 
 void ChampMais::declencher_effet(unsigned int possesseur, int bonus) const{

@@ -8,7 +8,7 @@ EntrepriseDeDemenagement::EntrepriseDeDemenagement()
                    "../assets/batiments/Vert/EntrepriseDeDemenagement.png",
                    Vert,
                    {9, 10},
-                   "entreprise") {}
+                   type_bat::Entreprise) {}
 
 void EntrepriseDeDemenagement::declencher_effet(unsigned int possesseur, int bonus) const {
     /// Effet de l'EntrepriseDeDemenagement
@@ -39,7 +39,7 @@ void EntrepriseDeDemenagement::declencher_effet(unsigned int possesseur, int bon
     Batiment* batiment = j_actuel->selectionner_batiment();
 
     // On verifie que le batiment n'est pas de type special
-    while (batiment == nullptr || batiment->get_type() == "special"){
+    while (batiment == nullptr || batiment->get_type() == type_bat::Special){
         partie->get_vue_partie()->get_vue_infos()->add_info("Vous ne pouvez pas donner un etablissement de type special");
         cout << "Vous ne pouvez pas donner un etablissement de type special." << endl;
         batiment = j_actuel->selectionner_batiment();

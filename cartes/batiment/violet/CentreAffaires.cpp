@@ -8,7 +8,7 @@ CentreAffaires::CentreAffaires():
              "../assets/batiments/Violet/Centre-d-affaires.png",
              Violet,
              list<unsigned int>{6},
-             "special") {
+             type_bat::Special) {
     ///Constructeur de Centre d'Affaires
 }
 

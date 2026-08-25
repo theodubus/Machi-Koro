@@ -113,9 +113,9 @@ int main() {
             signaler(attendu.nom, "couleur",
                      attendu.couleur, nom_couleur(obtenu->get_couleur()));
 
-        if (obtenu->get_type() != attendu.type)
+        if (nom_type(obtenu->get_type()) != attendu.type)
             signaler(attendu.nom, "type (icone de la carte)",
-                     attendu.type, obtenu->get_type());
+                     attendu.type, nom_type(obtenu->get_type()));
 
         const string chemin_attendu =
                 string("../assets/batiments/") + attendu.couleur + "/" + attendu.image;

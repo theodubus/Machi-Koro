@@ -8,7 +8,7 @@ Chalutier::Chalutier() :
         "../assets/batiments/Bleu/Chalutier.png",
         Bleu,
         list<unsigned int>{12,13,14},
-        "bateau"){}
+        type_bat::Bateau){}
 
 ///Constructeur de Chalutier
 

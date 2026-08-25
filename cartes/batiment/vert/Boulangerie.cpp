@@ -8,7 +8,7 @@ Boulangerie::Boulangerie()
                    "../assets/batiments/Vert/Boulangerie.png",
                    Vert,
                    {2, 3},
-                   "commerce") {}
+                   type_bat::Commerce) {}
 
 void Boulangerie::declencher_effet(unsigned int possesseur, int bonus) const {
     /// Effet de la Boulangerie

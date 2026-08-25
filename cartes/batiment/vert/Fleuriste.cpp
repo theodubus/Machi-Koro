@@ -8,7 +8,7 @@ Fleuriste::Fleuriste()
                    "../assets/batiments/Vert/Fleuriste.png",
                    Vert,
                    {6},
-                   "commerce") {}
+                   type_bat::Commerce) {}
 
 void Fleuriste::declencher_effet(unsigned int possesseur, int bonus) const {
     /// Effet de la FabriqueDeMeubles

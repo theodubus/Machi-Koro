@@ -8,7 +8,7 @@ CaveAVin::CaveAVin()
                    "../assets/batiments/Vert/CaveAVin.png",
                    Vert,
                    {9},
-                   "usine") {}
+                   type_bat::Usine) {}
 
 void CaveAVin::declencher_effet(unsigned int possesseur, int bonus) const {
     /// Effet de la CaveAVin

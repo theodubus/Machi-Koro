@@ -8,7 +8,7 @@ Cafe::Cafe() :
                      "../assets/batiments/Rouge/Cafe.png",
                      Rouge ,
                      list<unsigned int>{3},
-                     "restaurant") {}
+                     type_bat::Restaurant) {}
 
 void Cafe::declencher_effet(unsigned int possesseur, int bonus) const{
 

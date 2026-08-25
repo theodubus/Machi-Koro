@@ -8,7 +8,7 @@ Startup::Startup() :
                  "../assets/batiments/Violet/Startup.png",
                  Violet,
                  list<unsigned int>{10},
-                 "special") {
+                 type_bat::Special) {
     ///Constructeur de Startup
 }
 

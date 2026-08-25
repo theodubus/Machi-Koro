@@ -8,7 +8,7 @@ MaisonEdition::MaisonEdition():
                  "../assets/batiments/Violet/Maison-d-edition.png",
                  Violet,
                  list<unsigned int>{7},
-                 "special") {
+                 type_bat::Special) {
     ///Constructeur de Maison d'Edition
 }
 
@@ -29,7 +29,7 @@ void MaisonEdition::declencher_effet(unsigned int possesseur, int bonus) const{
         if (i != possesseur){
             Joueur* joueur = tab_joueurs[i];
             // On compte le nombre de batiments concernes
-            nb_bat = joueur->count_type("restaurant") + joueur->count_type("commerce");
+            nb_bat = joueur->count_type(type_bat::Restaurant) + joueur->count_type(type_bat::Commerce);
             // On fait le transfert d'argent
             Partie::get_instance()->transfert_argent(i, possesseur, nb_bat);
         }

@@ -8,7 +8,7 @@ Arboretum::Arboretum():
                  "../assets/batiments/Violet/Arboretum.png",
                  Violet,
                  list<unsigned int>{11, 12, 13},
-                 "special") {
+                 type_bat::Special) {
     ///Constructeur de l'Arboretum
 }
 

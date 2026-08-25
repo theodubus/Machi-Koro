@@ -8,7 +8,7 @@ HalleDeMarche::HalleDeMarche()
                    "../assets/batiments/Vert/HalleDeMarche.png",
                    Vert,
                    {12, 13},
-                   "usine") {}
+                   type_bat::Usine) {}
 
 void HalleDeMarche::declencher_effet(unsigned int possesseur, int bonus) const {
     /// Effet de la HalleDeMarche
@@ -17,7 +17,7 @@ void HalleDeMarche::declencher_effet(unsigned int possesseur, int bonus) const {
     Joueur* j_actuel = partie->get_tab_joueurs()[j_act_index];
 
     // On compte le nombre d'etablissements de type restaurant
-    unsigned int nb_restaurant = j_actuel->count_type("restaurant");
+    unsigned int nb_restaurant = j_actuel->count_type(type_bat::Restaurant);
 
     if (nb_restaurant > 0) {
         partie->get_vue_partie()->get_vue_infos()->add_info("Activation de l'effet de la carte Halle de marche du joueur \""+ j_actuel->get_nom() + "\"");

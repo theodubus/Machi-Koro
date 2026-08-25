@@ -8,7 +8,7 @@ Pizzeria::Pizzeria() :
                      "../assets/batiments/Rouge/Pizzeria.png",
                      Rouge,
                      list<unsigned int>{7},
-                     "restaurant"){}
+                     type_bat::Restaurant){}
 
 void Pizzeria::declencher_effet(unsigned int possesseur, int bonus) const{
     Partie * partie = Partie::get_instance();

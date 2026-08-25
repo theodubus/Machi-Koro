@@ -8,7 +8,7 @@ EntrepriseDeTravauxPublics::EntrepriseDeTravauxPublics()
                    "../assets/batiments/Vert/EntrepriseDeTravauxPublics.png",
                    Vert,
                    {4},
-                   "entreprise") {}
+                   type_bat::Entreprise) {}
 
 void EntrepriseDeTravauxPublics::declencher_effet(unsigned int possesseur, int bonus) const {
     /// Effet de l'EntrepriseDeTravauxPublics

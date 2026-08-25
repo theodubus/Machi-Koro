@@ -8,7 +8,7 @@ Superette::Superette()
                    "../assets/batiments/Vert/Superette.png",
                    Vert,
                    {4},
-                   "commerce") {}
+                   type_bat::Commerce) {}
 
 void Superette::declencher_effet(unsigned int possesseur, int bonus) const{
     /// Effet de la Superette

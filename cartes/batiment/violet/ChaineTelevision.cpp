@@ -10,7 +10,7 @@ ChaineTelevision::ChaineTelevision():
              "../assets/batiments/Violet/Chaine-de-television.png",
              Violet,
              list<unsigned int>{6},
-             "special") {
+             type_bat::Special) {
     ///Constructeur de Chaine de Television
 }
 

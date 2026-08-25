@@ -8,7 +8,7 @@ Ferme::Ferme() :
         "../assets/batiments/Bleu/Ferme.png",
         Bleu,
         list<unsigned int>{2},
-        "betail"){}
+        type_bat::Betail){}
 ///Constructeur de Ferme
 
 void Ferme::declencher_effet(unsigned int possesseur, int bonus) const {

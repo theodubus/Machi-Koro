@@ -8,7 +8,7 @@ Verger::Verger() :
         "../assets/batiments/Bleu/Verger.png",
         Bleu,
         list<unsigned int>{10},
-        "champ"){}
+        type_bat::Champ){}
 ///Constructeur de Verger
 
 void Verger::declencher_effet(unsigned int possesseur, int bonus) const {

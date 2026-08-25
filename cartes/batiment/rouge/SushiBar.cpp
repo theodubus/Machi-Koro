@@ -8,7 +8,7 @@ SushiBar::SushiBar() :
                      "../assets/batiments/Rouge/Sushi-bar.png",
                      Rouge ,
                      list<unsigned int>{1},
-                     "restaurant"){}
+                     type_bat::Restaurant){}
 
 void SushiBar::declencher_effet(unsigned int possesseur, int bonus) const{
     Partie * partie = Partie::get_instance();

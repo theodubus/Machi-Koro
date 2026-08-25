@@ -8,7 +8,7 @@ PetitBateauDePeche::PetitBateauDePeche() :
                  "../assets/batiments/Bleu/Petit-bateau-peche.png",
                  Bleu,
                  list<unsigned int>{8},
-                 "bateau"){}
+                 type_bat::Bateau){}
 ///Constructeur de BateauPeche
 
 

@@ -8,7 +8,7 @@ FabriqueDeMeubles::FabriqueDeMeubles()
                    "../assets/batiments/Vert/FabriqueDeMeubles.png",
                    Vert,
                    {8},
-                   "usine") {}
+                   type_bat::Usine) {}
 
 
 void FabriqueDeMeubles::declencher_effet(unsigned int possesseur, int bonus) const {
@@ -18,7 +18,7 @@ void FabriqueDeMeubles::declencher_effet(unsigned int possesseur, int bonus) con
     Joueur* j_actuel = partie->get_tab_joueurs()[j_act_index];
 
     // On compte le nombre d'etablissements de type engrenage
-    unsigned int nb_engrenages = j_actuel->count_type("engrenage");
+    unsigned int nb_engrenages = j_actuel->count_type(type_bat::Engrenage);
 
     if (nb_engrenages > 0) {
         partie->get_vue_partie()->get_vue_infos()->add_info("Activation de l'effet de la carte Fabrique de meubles du joueur \""+ j_actuel->get_nom() + "\"");

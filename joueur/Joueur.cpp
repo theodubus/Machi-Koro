@@ -155,7 +155,7 @@ void Joueur::retirer_batiment(Batiment *bat) {
     Partie::get_instance()->get_vue_partie()->get_vue_infos()->add_info(message);
 }
 
-unsigned int Joueur::count_type(const string& type) const {
+unsigned int Joueur::count_type(type_bat type) const {
     /// Compte le nombre de cartes d'un type donne
     unsigned int count = 0;
     // pour chaque couleur de la liste de batiments du joueur

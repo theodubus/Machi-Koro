@@ -8,7 +8,7 @@ CentreImpots::CentreImpots():
                  "../assets/batiments/Violet/Centre-des-impots.png",
                  Violet,
                  list<unsigned int>{8,9},
-                 "special") {
+                 type_bat::Special) {
     ///Constructeur du Centre des Impots
 }
 

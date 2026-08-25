@@ -8,7 +8,7 @@ MoonsterSoda::MoonsterSoda()
                    "../assets/batiments/Vert/MoonsterSoda.png",
                    Vert,
                    {11},
-                   "usine") {}
+                   type_bat::Usine) {}
 
 void MoonsterSoda::declencher_effet(unsigned int possesseur, int bonus) const {
     /// Effet du MoonsterSoda
@@ -20,7 +20,7 @@ void MoonsterSoda::declencher_effet(unsigned int possesseur, int bonus) const {
     // On compte le nombre d'etablissements de type restaurant de tous les joueurs
     unsigned int nb_restaurants = 0;
     for (Joueur* j : tab_joueurs) {
-        nb_restaurants += j->count_type("restaurant");
+        nb_restaurants += j->count_type(type_bat::Restaurant);
     }
 
     if (nb_restaurants > 0) {

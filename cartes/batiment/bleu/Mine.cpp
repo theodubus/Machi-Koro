@@ -8,7 +8,7 @@ Mine::Mine() :
         "../assets/batiments/Bleu/Mine.png",
         Bleu,
         list<unsigned int>{9},
-        "engrenage"){}
+        type_bat::Engrenage){}
 ///Constructeur de Mine
 
 void Mine::declencher_effet(unsigned int possesseur, int bonus) const{

@@ -8,7 +8,7 @@ Restaurant::Restaurant() :
                      "../assets/batiments/Rouge/Restaurant.png",
                      Rouge ,
                      list<unsigned int>{ 9,10 },
-                     "restaurant") {}
+                     type_bat::Restaurant) {}
 
 
 void Restaurant::declencher_effet(unsigned int possesseur, int bonus) const{

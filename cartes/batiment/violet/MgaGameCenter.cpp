@@ -8,7 +8,7 @@ MgaGameCenter::MgaGameCenter() :
                  "../assets/batiments/Violet/MgaGameCenter.png",
                  Violet,
                  {10},
-                 "special") {
+                 type_bat::Special) {
     ///Constructeur de MgaGameCenter
 }
 

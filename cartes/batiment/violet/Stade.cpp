@@ -8,7 +8,7 @@ Batiment("Stade",
          "../assets/batiments/Violet/Stade.png",
          Violet,
          list<unsigned int>{6},
-         "special") {
+         type_bat::Special) {
     ///Constructeur de Stade
 }
 

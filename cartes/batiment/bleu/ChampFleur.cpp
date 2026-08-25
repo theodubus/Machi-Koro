@@ -8,7 +8,7 @@ ChampFleur::ChampFleur() :
         "../assets/batiments/Bleu/ChampFleur.png",
         Bleu,
         list<unsigned int>{4},
-        "champ"){}
+        type_bat::Champ){}
 ///Constructeur de ChampFleur
 
 void ChampFleur::declencher_effet(unsigned int possesseur, int bonus) const {

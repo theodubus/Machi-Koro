@@ -8,7 +8,7 @@ MoonsterBurger::MoonsterBurger() :
                      "../assets/batiments/Rouge/Monster-burger.png",
                      Rouge,
                      list<unsigned int>{8},
-                     "restaurant"){}
+                     type_bat::Restaurant){}
 
 void MoonsterBurger::declencher_effet(unsigned int possesseur, int bonus) const{
     Partie * partie = Partie::get_instance();

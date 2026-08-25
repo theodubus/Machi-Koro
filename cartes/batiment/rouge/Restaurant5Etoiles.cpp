@@ -8,7 +8,7 @@ Restaurant5Etoiles::Restaurant5Etoiles() :
                      "../assets/batiments/Rouge/Restaurant-5-etoiles.png",
                      Rouge,
                      list<unsigned int>{5},
-                     "restaurant"){}
+                     type_bat::Restaurant){}
 
 
 void Restaurant5Etoiles::declencher_effet(unsigned int possesseur, int bonus) const{

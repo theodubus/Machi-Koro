@@ -8,7 +8,7 @@ EntrepriseRenovation::EntrepriseRenovation() :
                  "../assets/batiments/Violet/Entreprise-de-renovation.png",
                  Violet,
                  list<unsigned int>{8},
-                 "special") {
+                 type_bat::Special) {
     ///Constructeur de EntrepriseRenovation
 }
 

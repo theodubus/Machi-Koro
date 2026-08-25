@@ -8,7 +8,7 @@ ClubPrive::ClubPrive() :
                      "../assets/batiments/Rouge/Club-prive.png",
                      Rouge ,
                      list<unsigned int>{12,13,14},
-                     "restaurant"){}
+                     type_bat::Restaurant){}
 
 void ClubPrive::declencher_effet(unsigned int possesseur, int bonus) const{
     Partie * partie = Partie::get_instance();

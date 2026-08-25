@@ -8,7 +8,7 @@ Vignoble::Vignoble() :
         "../assets/batiments/Bleu/Vignobles.png",
         Bleu,
         list<unsigned int>{7},
-        "champ"){}
+        type_bat::Champ){}
 ///Constructeur de Vignoble
 
 void Vignoble::declencher_effet(unsigned int possesseur, int bonus) const {
