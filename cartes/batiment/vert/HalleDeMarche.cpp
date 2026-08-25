@@ -12,9 +12,9 @@ HalleDeMarche::HalleDeMarche()
 
 void HalleDeMarche::declencher_effet(const ContexteDeclenchement& ctx) const {
     /// Effet de la HalleDeMarche
-    unsigned int j_act_index =  ctx.joueur_actuel;
+    unsigned int index_possesseur =  ctx.possesseur;
     Partie * partie = Partie::get_instance();
-    Joueur* j_actuel = partie->get_tab_joueurs()[j_act_index];
+    Joueur* j_actuel = partie->get_tab_joueurs()[index_possesseur];
 
     // On compte le nombre d'etablissements de type restaurant
     unsigned int nb_restaurant = j_actuel->count_type(type_bat::Restaurant);

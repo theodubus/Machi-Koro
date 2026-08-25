@@ -239,6 +239,12 @@ Batiment* Joueur::selectionner_batiment() const {
             QLabel *texte = new QLabel(QString::fromStdString("Quel batiment veux tu sélectionner dans le jeu de " + this->get_nom() + " ?"));
             texte->setStyleSheet("QLabel { font-weight : bold; font-size : 25px; }");
             layout->addWidget(texte);
+            // Fermer la fenetre sans choisir la repose aussitot : le livret ne
+            // laisse pas decliner l'effet d'une carte. Sans cette ligne, le joueur
+            // croit a une fenetre qui refuse de se fermer.
+            QLabel *obligatoire = new QLabel("Ce choix est obligatoire : l'effet de la carte doit s'appliquer.");
+            obligatoire->setStyleSheet("QLabel { color : #a0522d; font-style : italic; }");
+            layout->addWidget(obligatoire);
             vector<VueCarte*> vue_batiments;
             QGridLayout* layout_batiments = new QGridLayout;
             i = 0;
@@ -368,6 +374,11 @@ Monument *Joueur::selectionner_monument() const {
             QLabel *texte = new QLabel(QString::fromStdString(this->get_nom() + ", quel batiment veux tu sélectionner ?"));
             texte->setStyleSheet("QLabel { font-weight : bold; font-size : 25px; }");
             layout->addWidget(texte);
+            // Meme raison qu'au selecteur de batiment : la fenetre se repose tant
+            // qu'aucun choix n'est fait, il faut le dire au joueur.
+            QLabel *obligatoire = new QLabel("Ce choix est obligatoire : l'effet de la carte doit s'appliquer.");
+            obligatoire->setStyleSheet("QLabel { color : #a0522d; font-style : italic; }");
+            layout->addWidget(obligatoire);
             vector<VueCarte*> vue_monuments;
             QGridLayout* layout_monuments = new QGridLayout;
             int i = 0;

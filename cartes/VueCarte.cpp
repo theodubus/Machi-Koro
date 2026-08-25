@@ -27,7 +27,10 @@ VueCarte::VueCarte(const Carte &c,bool etat,bool est_act, QWidget *parent) : QPu
         this->setObjectName(QString::fromStdString(c.get_nom()));
         // Image du bouton
         pixmap = QPixmap(QString::fromStdString(path_carte));
-        pixmap.scaled(80,124,Qt::KeepAspectRatio);
+        // scaled() est const et rend une nouvelle image : son resultat etait jete,
+        // et la carte restait en 400x620 pour un affichage en 80x124, redimensionne
+        // a chaque repeint.
+        pixmap = pixmap.scaled(80,124,Qt::KeepAspectRatio);
         ButtonIcon = QIcon(pixmap);
         this->setIconSize(QSize(80, 124));
         this->setIcon(ButtonIcon);
@@ -43,7 +46,7 @@ VueCarte::VueCarte(const Carte &c,bool etat,bool est_act, QWidget *parent) : QPu
         this->setObjectName(QString::fromStdString(c.get_nom()));
         // Image du bouton
         pixmap = QPixmap(QString::fromStdString(path_carte));
-        pixmap.scaled(120,186,Qt::KeepAspectRatio);
+        pixmap = pixmap.scaled(120,186,Qt::KeepAspectRatio);
         ButtonIcon = QIcon(pixmap);
         this->setIconSize(QSize(120, 186));
         this->setIcon(ButtonIcon);

@@ -492,6 +492,28 @@ void Partie::jouer_partie() {
     jouer_tour();
 }
 
+bool Partie::activer_monument(const vector<Monument*>& monuments, const string& nom,
+                              bool condition) {
+    /// Voir Partie.h : l'ordre des monuments reste dans jouer_tour(), seule la
+    /// recherche est factorisee ici.
+    if (!condition) {
+        return false;
+    }
+    auto it = find_if(monuments.begin(), monuments.end(),
+                      [&nom](Monument* m) { return m->get_nom() == nom; });
+    if (it == monuments.end()) {
+        return false;
+    }
+    try {
+        (*it)->declencher_effet({joueur_actuel, joueur_actuel});
+    }
+    catch (exception const& e) {
+        cerr << "ERREUR : " << e.what() << endl;
+    }
+    return true;
+}
+
+
 void Partie::jouer_tour() {
     /// ****************************************************************************************************************
     /// ****************************** ETAPE 1 : Variables + dés *******************************************************
@@ -530,77 +552,28 @@ void Partie::jouer_tour() {
     /// ****************************************************************************************************************
 
     /// Centre commercial
-    auto it_cc = find_if(monuments_joueurs.begin(), monuments_joueurs.end(),
-                         [](Monument *m) { return m->get_nom() == "CentreCommercial"; });
-    if (it_cc != monuments_joueurs.end()) {
-        // Si le monument est trouve, on le joue
-        try {
-            monuments_joueurs[it_cc - monuments_joueurs.begin()]->declencher_effet({joueur_actuel, joueur_actuel});
-        }
-        catch (exception const &e) {
-            cerr << "ERREUR : " << e.what() << endl;
-        }
-        centre_c_act = true;
-    }
+    centre_c_act = activer_monument(monuments_joueurs, "CentreCommercial");
 
     /// Gare
-    auto it_gare = find_if(monuments_joueurs.begin(), monuments_joueurs.end(),
-                           [](Monument *m) { return m->get_nom() == "Gare"; });
-    if (it_gare != monuments_joueurs.end()) {
-        // Si le monument est trouve, on le joue
-        try {
-            monuments_joueurs[it_gare - monuments_joueurs.begin()]->declencher_effet({joueur_actuel, joueur_actuel});
-        }
-        catch (exception const &e) {
-            cerr << "ERREUR : " << e.what() << endl;
-        }
-    }
+    activer_monument(monuments_joueurs, "Gare");
 
     /// Fabrique du Pere Noel
     /// Un lance casse se constate au moment ou les des tombent : cet effet se resout
     /// donc juste apres le lance, une fois la Gare passee puisqu'elle decide combien
     /// de des sont lances, et avant que la Tour radio ne propose de relancer.
-    auto it_fpn = find_if(monuments_joueurs.begin(), monuments_joueurs.end(),
-                          [](Monument *m) { return m->get_nom() == "FabriqueDuPereNoel"; });
-    if (it_fpn != monuments_joueurs.end() && de_casse == 16) {
-        try {
-            (*it_fpn)->declencher_effet({joueur_actuel, joueur_actuel});
-        }
-        catch (exception const &e) {
-            cerr << "ERREUR : " << e.what() << endl;
-        }
-    }
+    activer_monument(monuments_joueurs, "FabriqueDuPereNoel", de_casse == 16);
 
     //une fois que tout les effets en rapport avec les dés sont joués, on update l'affichage des dés
     vue_partie->update_des();
 
     /// Tour radio
-    auto it_tr = find_if(monuments_joueurs.begin(), monuments_joueurs.end(),
-                         [](Monument *m) { return m->get_nom() == "TourRadio"; });
-    if (it_tr != monuments_joueurs.end()) {
-        // Si le monument est trouve, on le joue
-        try {
-            monuments_joueurs[it_tr - monuments_joueurs.begin()]->declencher_effet({joueur_actuel, joueur_actuel});
-        }
-        catch (exception const &e) {
-            cerr << "ERREUR : " << e.what() << endl;
-        }
-    }
+    activer_monument(monuments_joueurs, "TourRadio");
 
 
     vue_partie->update_des();
 
     /// Port
-    for (auto mon: monuments_joueurs) {
-        if (mon->get_nom() == "Port" && (de_1 + de_2) >= 10) {
-            try {
-                mon->declencher_effet({joueur_actuel, joueur_actuel});
-            }
-            catch (exception const &e) {
-                cerr << "ERREUR : " << e.what() << endl;
-            }
-        }
-    }
+    activer_monument(monuments_joueurs, "Port", (de_1 + de_2) >= 10);
 
     vue_partie->update_des();
 
@@ -702,17 +675,7 @@ void Partie::jouer_tour() {
     /// ****************************************************************************************************************
 
     /// Hotel de ville
-    auto it_hdv = find_if(monuments_joueurs.begin(), monuments_joueurs.end(),
-                          [](Monument *m) { return m->get_nom() == "HotelDeVille"; });
-    if (it_hdv != monuments_joueurs.end()) {
-        // Si le monument est trouve, on le joue
-        try {
-            monuments_joueurs[it_hdv - monuments_joueurs.begin()]->declencher_effet({joueur_actuel, joueur_actuel});
-        }
-        catch (exception const &e) {
-            cerr << "ERREUR : " << e.what() << endl;
-        }
-    }
+    activer_monument(monuments_joueurs, "HotelDeVille");
 
     /// Achat
     if(!tab_joueurs[joueur_actuel]->get_est_ia()){
@@ -748,16 +711,7 @@ void Partie::suite_tour(bool achat_ok){
         vue_partie->get_vue_infos()->add_info("Vous n'avez rien acheté");
 
         /// Aeroport
-        auto it_earo = find_if(monuments_joueurs.begin(), monuments_joueurs.end(), [](Monument* m){return m->get_nom() == "Aeroport";});
-        if (it_earo != monuments_joueurs.end()){
-            // Si le monument est trouve, on le joue
-            try{
-                monuments_joueurs[it_earo - monuments_joueurs.begin()]->declencher_effet({joueur_actuel, joueur_actuel});
-            }
-            catch(exception const& e){
-                cerr << "ERREUR : " << e.what() << endl;
-            }
-        }
+        activer_monument(monuments_joueurs, "Aeroport");
 
     }
 
@@ -794,16 +748,7 @@ void Partie::suite_tour(bool achat_ok){
     }
 
     /// ParcAtraction
-    auto it_parc = find_if(monuments_joueurs.begin(), monuments_joueurs.end(), [](Monument* m){return m->get_nom() == "ParcAttraction";});
-    if (it_parc != monuments_joueurs.end() && de_1 == de_2){
-        // Si le monument est trouve, on le joue
-        try{
-            monuments_joueurs[it_parc - monuments_joueurs.begin()]->declencher_effet({joueur_actuel, joueur_actuel});
-        }
-        catch(exception const& e){
-            cerr << "ERREUR : " << e.what() << endl;
-        }
-    }
+    activer_monument(monuments_joueurs, "ParcAttraction", de_1 == de_2);
 
     /// Complete le shop
     while (!pioche->est_vide() && shop->get_nb_tas_reel() < shop->get_nb_tas_max()) {
@@ -887,6 +832,11 @@ unsigned int Partie::selectionner_joueur(const vector<Joueur*>& tab_joueurs, uns
                     tab_joueurs[joueur_actuel]->get_nom() + ", quel joueur veux tu sélectionner ?"));
             texte->setStyleSheet("QLabel { font-weight : bold; font-size : 25px; }");
             layout_joueurs->addWidget(texte);
+            // Meme raison qu'au selecteur de batiment : la fenetre se repose tant
+            // qu'aucun choix n'est fait, il faut le dire au joueur.
+            QLabel *obligatoire = new QLabel("Ce choix est obligatoire : l'effet de la carte doit s'appliquer.");
+            obligatoire->setStyleSheet("QLabel { color : #a0522d; font-style : italic; }");
+            layout_joueurs->addWidget(obligatoire);
 
             int i = 0, ind_joueur = 0;
             for (auto &joueur: tab_joueurs) {

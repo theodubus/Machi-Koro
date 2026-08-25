@@ -51,8 +51,20 @@ class Joueur {
         const string& get_nom() const {return nom;};
         const map<Monument*, bool>& get_liste_monument() const {return liste_monument;};
 
+        /// Ces deux accesseurs rendent une **copie**, et ce n'est pas un oubli.
+        ///
+        /// Les boucles de resolution des effets iterent dessus tout en declenchant
+        /// des cartes qui modifient la ville du joueur : l'Entreprise de
+        /// demenagement, verte, retire un batiment du joueur pendant la boucle
+        /// verte ; l'Entreprise de renovation et le MGA Game Center en ferment
+        /// pendant la boucle violette. Rendre une reference invaliderait
+        /// l'iterateur de la boucle en cours. La copie est le prix de cette
+        /// surete : ne pas l'« optimiser » sans revoir les boucles.
         map<couleur_bat, map<Batiment*, unsigned int>> get_liste_batiment() const {return liste_batiment;};
-        map<Batiment*, unsigned int> get_liste_batiment(couleur_bat couleur) {return liste_batiment[couleur];};
+        map<Batiment*, unsigned int> get_liste_batiment(couleur_bat couleur) const {
+            auto it = liste_batiment.find(couleur);
+            return it == liste_batiment.end() ? map<Batiment*, unsigned int>() : it->second;
+        };
 
         vector<unsigned int> get_repartition_argent() const;
         vector<Monument*> get_monument_jouables() const;
