@@ -18,6 +18,9 @@ class VueJoueur : public QWidget
 Q_OBJECT
 public:
     explicit VueJoueur(Joueur* j,bool e_j_a,  QWidget *parent = nullptr);
+    // Cette vue est reconstruite a chaque tour : sans destructeur, la fenetre des
+    // batiments fermes et les trois vecteurs de vues fuyaient a chaque fois.
+    ~VueJoueur() override;
     bool get_est_joueur_actuel() const{return est_joueur_actuel;}
     VueCarte* get_carte_choisie() const {return carte_choisie;}
 
