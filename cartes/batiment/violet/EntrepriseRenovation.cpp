@@ -12,11 +12,11 @@ EntrepriseRenovation::EntrepriseRenovation() :
     ///Constructeur de EntrepriseRenovation
 }
 
-void EntrepriseRenovation::declencher_effet(unsigned int possesseur, int bonus) const{
+void EntrepriseRenovation::declencher_effet(const ContexteDeclenchement& ctx) const{
     /// Effet de la classe Entreprise de Renovation
     Partie* partie = Partie::get_instance();
     const vector<Joueur *> &tab_joueurs = partie->get_tab_joueurs();
-    Joueur *j_actuel = tab_joueurs[possesseur];
+    Joueur *j_actuel = tab_joueurs[ctx.possesseur];
 
     // On verifie que le joueur possede au moins un batiment non violet
     map<Batiment*, unsigned int> liste_bat_bleu = j_actuel->get_liste_batiment(Bleu);

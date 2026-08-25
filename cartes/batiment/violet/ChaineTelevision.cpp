@@ -14,18 +14,18 @@ ChaineTelevision::ChaineTelevision():
     ///Constructeur de Chaine de Television
 }
 
-void ChaineTelevision::declencher_effet(unsigned int possesseur, int bonus) const{
+void ChaineTelevision::declencher_effet(const ContexteDeclenchement& ctx) const{
     /// Effet de ChaineTelevision
     // Variables utiles
     Partie *partie = Partie::get_instance();
     const vector<Joueur*> tab_joueurs = Partie::get_instance()->get_tab_joueurs();
-    Joueur* j_actuel = tab_joueurs[possesseur];
+    Joueur* j_actuel = tab_joueurs[ctx.possesseur];
     partie->get_vue_partie()->get_vue_infos()->add_info("Activation de l'effet de la Chaine de Television du joueur \"" + j_actuel->get_nom() +"\"");
 
     // Choix de joueur
-    unsigned int j_echange = Partie::selectionner_joueur(tab_joueurs, possesseur);
+    unsigned int j_echange = Partie::selectionner_joueur(tab_joueurs, ctx.possesseur);
 
-    Partie::get_instance()->transfert_argent(j_echange, possesseur, 5);
+    Partie::get_instance()->transfert_argent(j_echange, ctx.possesseur, 5);
 
 }
 

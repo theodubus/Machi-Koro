@@ -13,7 +13,7 @@ class PetitBateauDePeche : public Batiment{
         //*** Méthodes ***//
         Batiment* clone() const override {return new PetitBateauDePeche(*this);};
 
-        void declencher_effet(unsigned int possesseur, int bonus = 0) const override;
+        void declencher_effet(const ContexteDeclenchement& ctx) const override;
 };
 
 #endif //MACHI_KORO_MASTER_BATEAUPECHE_H

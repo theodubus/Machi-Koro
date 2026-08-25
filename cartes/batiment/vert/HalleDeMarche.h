@@ -9,7 +9,7 @@ public:
     ~HalleDeMarche() override = default;
     HalleDeMarche(const HalleDeMarche& halleDeMarche) = default;
     Batiment* clone() const override {return new HalleDeMarche(*this);};
-    void declencher_effet(unsigned int possesseur, int bonus = 0) const override;
+    void declencher_effet(const ContexteDeclenchement& ctx) const override;
 };
 
 #endif //MACHI_KORO_HALLE_DE_MARCHE_H

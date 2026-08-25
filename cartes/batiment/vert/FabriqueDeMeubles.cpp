@@ -11,9 +11,9 @@ FabriqueDeMeubles::FabriqueDeMeubles()
                    type_bat::Usine) {}
 
 
-void FabriqueDeMeubles::declencher_effet(unsigned int possesseur, int bonus) const {
+void FabriqueDeMeubles::declencher_effet(const ContexteDeclenchement& ctx) const {
     /// Effet de la FabriqueDeMeubles
-    unsigned int j_act_index =  Partie::get_instance()->get_joueur_actuel();
+    unsigned int j_act_index =  ctx.joueur_actuel;
     Partie * partie = Partie::get_instance();
     Joueur* j_actuel = partie->get_tab_joueurs()[j_act_index];
 
@@ -25,5 +25,5 @@ void FabriqueDeMeubles::declencher_effet(unsigned int possesseur, int bonus) con
     }
 
     // On donne 3 pieces par engrenage
-    j_actuel->set_argent(j_actuel->get_argent() + 3 * nb_engrenages * (1 + bonus));
+    j_actuel->set_argent(j_actuel->get_argent() + 3 * nb_engrenages * (1 + ctx.supplement));
 }

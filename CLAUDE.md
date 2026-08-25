@@ -121,6 +121,18 @@ Deux valeurs ne reposent sur aucune source publiée, et ne le peuvent pas :
 - Le greffon Qt `offscreen` simule un écran de 800x600 : une fenêtre maximisée y
   reste enfermée et tout se chevauche. Pour juger une mise en page, sortir de
   l'état maximisé puis `resize(1920, 1080)` avant `grab()`.
+- `Partie::ajout_batiment()` **dédoublonne par nom** avant de cloner : dans une
+  partie donnée, un nom de carte correspond à exactement un `Batiment*`. Comme
+  `Joueur::ajouter_batiment()` compare les pointeurs, un joueur n'a jamais deux
+  entrées pour la même carte. Plusieurs cartes en dépendent, dont le `break` du
+  Fleuriste. Un test qui construit ses cartes avec `new` casse cette hypothèse
+  et mesure autre chose que le jeu.
+- Les parties de la batterie ne sont **pas reproductibles** d'une exécution à
+  l'autre, même à graine fixée et sans ASLR : le harnais ferme les fenêtres
+  modales sur une minuterie, et l'instant où il les intercepte change l'issue.
+  Un remaniement ne peut donc pas être validé en rejouant la même partie avant
+  et après. À la place : vérifier que chaque ligne modifiée correspond bien à la
+  substitution attendue, et sonder les cartes concernées une à une.
 
 ## Ce qui reste à faire
 
@@ -134,12 +146,27 @@ Reste aussi, côté confort : la colonne de gauche (dés, pioche) laisse une lar
 zone vide, et l'image d'entête est affichée à sa taille native sans s'adapter à
 la fenêtre.
 
-**Architecture**, après l'interface — sortir les effets des cartes du contrôleur.
-Dans l'ordre : remplacer les chaînes de type par une énumération ; faire du bonus
-du Centre commercial une question posée à la carte ; ajouter un point d'accroche
-« à l'achat » sur `Batiment` pour la Banque de Minivilles ; enfin remplacer
-`declencher_effet(possesseur, bonus)` par un contexte de déclenchement, seul
-changement qui touche les 47 signatures.
+**Architecture** — traité, dans l'ordre prévu : énumération `type_bat` à la place
+des chaînes ; `beneficie_centre_commercial()` posée à la carte ; point d'accroche
+`a_l_achat()` sur `Batiment` ; `ContexteDeclenchement` à la place du couple
+`(possesseur, bonus)`.
+
+Restent deux nettoyages sans risque, laissés de côté pour garder au remaniement
+un seul type de modification vérifiable :
+
+- une douzaine de cartes gardent un `unsigned int j_act_index = ctx.joueur_actuel;`
+  devenu inutile ;
+- plusieurs cartes bleues nomment `joueur_actuel` une variable locale qui
+  désigne en fait le **possesseur** de la carte, pas le joueur dont c'est le
+  tour.
+
+Le contrôleur ne branche plus sur le nom d'un **bâtiment** pour lui appliquer un
+effet. Il cite encore dix cartes par leur nom, mais pour autre chose : les six
+monuments, dont il ordonne l'activation au fil du tour (`CentreCommercial`,
+`Gare`, `TourRadio`, `Port`, `ParcAttraction`, `Aeroport`), les deux monuments
+offerts (`HotelDeVille`, `FabriqueDuPereNoel`) et la main de départ (`ChampBle`,
+`Boulangerie`). Sortir la séquence d'activation des monuments du contrôleur
+serait le chantier suivant.
 
 ## Conventions
 

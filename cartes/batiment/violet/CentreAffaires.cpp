@@ -14,11 +14,11 @@ CentreAffaires::CentreAffaires():
 
 
 
-void CentreAffaires::declencher_effet(unsigned int possesseur, int bonus) const {
+void CentreAffaires::declencher_effet(const ContexteDeclenchement& ctx) const {
     /// Effet du Centre d'affaires
     Partie *partie = Partie::get_instance();
     const vector<Joueur *> &tab_joueurs = Partie::get_instance()->get_tab_joueurs();
-    Joueur *j_actuel = tab_joueurs[possesseur];
+    Joueur *j_actuel = tab_joueurs[ctx.possesseur];
 
     // On verifie que le joueur possede au moins un batiment non violet
     map<Batiment*, unsigned int> liste_bat_bleu = j_actuel->get_liste_batiment(Bleu);
@@ -57,7 +57,7 @@ void CentreAffaires::declencher_effet(unsigned int possesseur, int bonus) const 
 
     do{
         // Selection du joueur pour faire l'echange
-        num_joueur = Partie::selectionner_joueur(tab_joueurs, possesseur);
+        num_joueur = Partie::selectionner_joueur(tab_joueurs, ctx.possesseur);
         joueur_echange = tab_joueurs[num_joueur];
 
         // On verifie que le joueur possede au moins un batiment non violet

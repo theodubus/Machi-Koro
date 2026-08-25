@@ -10,11 +10,11 @@ TourRadio::TourRadio() :
     /// Constructeur de TourRadio
 }
 
-void TourRadio::declencher_effet(unsigned int possesseur, int bonus) const {
-    Joueur *joueur = Partie::get_instance()->get_tab_joueurs()[possesseur];
+void TourRadio::declencher_effet(const ContexteDeclenchement& ctx) const {
+    Joueur *joueur = Partie::get_instance()->get_tab_joueurs()[ctx.possesseur];
     Partie *partie = Partie::get_instance();
 
-    if (partie->get_tab_joueurs()[possesseur]->get_est_ia()) {
+    if (partie->get_tab_joueurs()[ctx.possesseur]->get_est_ia()) {
         if(rand() % 8 == 1) {
             partie->get_vue_partie()->get_vue_infos()->add_info("Activation de l'effet de la Tour radio du joueur \"" + joueur->get_nom() + "\"");
             partie->set_de_1(Partie::lancer_de());

@@ -13,7 +13,7 @@ class ChampBle : public Batiment{
         //*** Méthodes ***//
         Batiment* clone() const override {return new ChampBle(*this);};
 
-        void declencher_effet(unsigned int possesseur, int bonus = 0) const override;
+        void declencher_effet(const ContexteDeclenchement& ctx) const override;
 };
 
 #endif //MACHI_KORO_CHAMPBLE_H

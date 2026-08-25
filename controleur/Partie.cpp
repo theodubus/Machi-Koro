@@ -535,7 +535,7 @@ void Partie::jouer_tour() {
     if (it_cc != monuments_joueurs.end()) {
         // Si le monument est trouve, on le joue
         try {
-            monuments_joueurs[it_cc - monuments_joueurs.begin()]->declencher_effet(joueur_actuel);
+            monuments_joueurs[it_cc - monuments_joueurs.begin()]->declencher_effet({joueur_actuel, joueur_actuel});
         }
         catch (exception const &e) {
             cerr << "ERREUR : " << e.what() << endl;
@@ -549,7 +549,7 @@ void Partie::jouer_tour() {
     if (it_gare != monuments_joueurs.end()) {
         // Si le monument est trouve, on le joue
         try {
-            monuments_joueurs[it_gare - monuments_joueurs.begin()]->declencher_effet(joueur_actuel);
+            monuments_joueurs[it_gare - monuments_joueurs.begin()]->declencher_effet({joueur_actuel, joueur_actuel});
         }
         catch (exception const &e) {
             cerr << "ERREUR : " << e.what() << endl;
@@ -564,7 +564,7 @@ void Partie::jouer_tour() {
                           [](Monument *m) { return m->get_nom() == "FabriqueDuPereNoel"; });
     if (it_fpn != monuments_joueurs.end() && de_casse == 16) {
         try {
-            (*it_fpn)->declencher_effet(joueur_actuel);
+            (*it_fpn)->declencher_effet({joueur_actuel, joueur_actuel});
         }
         catch (exception const &e) {
             cerr << "ERREUR : " << e.what() << endl;
@@ -580,7 +580,7 @@ void Partie::jouer_tour() {
     if (it_tr != monuments_joueurs.end()) {
         // Si le monument est trouve, on le joue
         try {
-            monuments_joueurs[it_tr - monuments_joueurs.begin()]->declencher_effet(joueur_actuel);
+            monuments_joueurs[it_tr - monuments_joueurs.begin()]->declencher_effet({joueur_actuel, joueur_actuel});
         }
         catch (exception const &e) {
             cerr << "ERREUR : " << e.what() << endl;
@@ -594,7 +594,7 @@ void Partie::jouer_tour() {
     for (auto mon: monuments_joueurs) {
         if (mon->get_nom() == "Port" && (de_1 + de_2) >= 10) {
             try {
-                mon->declencher_effet(joueur_actuel);
+                mon->declencher_effet({joueur_actuel, joueur_actuel});
             }
             catch (exception const &e) {
                 cerr << "ERREUR : " << e.what() << endl;
@@ -634,7 +634,7 @@ void Partie::jouer_tour() {
                 int bonus = (centre_c_possesseur && it.first->beneficie_centre_commercial()) ? 1 : 0;
                 for (unsigned int effectif = 0; effectif < it.second; effectif++) {
                     try {
-                        it.first->declencher_effet(j_act_paiement, bonus);
+                        it.first->declencher_effet({j_act_paiement, joueur_actuel, bonus});
                     }
                     catch (exception const &e) {
                         cerr << "ERREUR : " << e.what() << endl;
@@ -654,7 +654,7 @@ void Partie::jouer_tour() {
                 it.first->get_num_activation().end()) {
                 for (unsigned int effectif = 0; effectif < it.second; effectif++) {
                     try {
-                        it.first->declencher_effet(i);
+                        it.first->declencher_effet({i, joueur_actuel});
                     }
                     catch (exception const &e) {
                         cerr << "ERREUR : " << e.what() << endl;
@@ -672,7 +672,7 @@ void Partie::jouer_tour() {
             int bonus = (centre_c_act && it.first->beneficie_centre_commercial()) ? 1 : 0;
             for (unsigned int effectif = 0; effectif < it.second; effectif++) {
                 try {
-                    it.first->declencher_effet(joueur_actuel, bonus);
+                    it.first->declencher_effet({joueur_actuel, joueur_actuel, bonus});
                 }
                 catch (exception const &e) {
                     cerr << "ERREUR : " << e.what() << endl;
@@ -688,7 +688,7 @@ void Partie::jouer_tour() {
             it.first->get_num_activation().end()) {
             for (unsigned int effectif = 0; effectif < it.second; effectif++) {
                 try {
-                    it.first->declencher_effet(joueur_actuel);
+                    it.first->declencher_effet({joueur_actuel, joueur_actuel});
                 }
                 catch (exception const &e) {
                     cerr << "ERREUR : " << e.what() << endl;
@@ -707,7 +707,7 @@ void Partie::jouer_tour() {
     if (it_hdv != monuments_joueurs.end()) {
         // Si le monument est trouve, on le joue
         try {
-            monuments_joueurs[it_hdv - monuments_joueurs.begin()]->declencher_effet(joueur_actuel);
+            monuments_joueurs[it_hdv - monuments_joueurs.begin()]->declencher_effet({joueur_actuel, joueur_actuel});
         }
         catch (exception const &e) {
             cerr << "ERREUR : " << e.what() << endl;
@@ -752,7 +752,7 @@ void Partie::suite_tour(bool achat_ok){
         if (it_earo != monuments_joueurs.end()){
             // Si le monument est trouve, on le joue
             try{
-                monuments_joueurs[it_earo - monuments_joueurs.begin()]->declencher_effet(joueur_actuel);
+                monuments_joueurs[it_earo - monuments_joueurs.begin()]->declencher_effet({joueur_actuel, joueur_actuel});
             }
             catch(exception const& e){
                 cerr << "ERREUR : " << e.what() << endl;
@@ -798,7 +798,7 @@ void Partie::suite_tour(bool achat_ok){
     if (it_parc != monuments_joueurs.end() && de_1 == de_2){
         // Si le monument est trouve, on le joue
         try{
-            monuments_joueurs[it_parc - monuments_joueurs.begin()]->declencher_effet(joueur_actuel);
+            monuments_joueurs[it_parc - monuments_joueurs.begin()]->declencher_effet({joueur_actuel, joueur_actuel});
         }
         catch(exception const& e){
             cerr << "ERREUR : " << e.what() << endl;

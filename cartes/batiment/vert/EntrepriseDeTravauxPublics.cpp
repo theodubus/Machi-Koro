@@ -10,13 +10,13 @@ EntrepriseDeTravauxPublics::EntrepriseDeTravauxPublics()
                    {4},
                    type_bat::Entreprise) {}
 
-void EntrepriseDeTravauxPublics::declencher_effet(unsigned int possesseur, int bonus) const {
+void EntrepriseDeTravauxPublics::declencher_effet(const ContexteDeclenchement& ctx) const {
     /// Effet de l'EntrepriseDeTravauxPublics
 
     // DESACTIVATION DU MONUMENT
 
     Partie * partie = Partie::get_instance();
-    Joueur* j_actuel = partie->get_tab_joueurs()[possesseur];
+    Joueur* j_actuel = partie->get_tab_joueurs()[ctx.possesseur];
 
 
 
@@ -34,5 +34,5 @@ void EntrepriseDeTravauxPublics::declencher_effet(unsigned int possesseur, int b
 
     // TRANSACTION AVEC LA BANQUE
     // On donne 8 pieces au joueur actuel
-    j_actuel->set_argent(j_actuel->get_argent() + 8 + bonus);
+    j_actuel->set_argent(j_actuel->get_argent() + 8 + ctx.supplement);
 }

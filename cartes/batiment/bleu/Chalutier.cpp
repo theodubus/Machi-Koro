@@ -12,11 +12,11 @@ Chalutier::Chalutier() :
 
 ///Constructeur de Chalutier
 
-void Chalutier::declencher_effet(unsigned int possesseur, int bonus) const{
+void Chalutier::declencher_effet(const ContexteDeclenchement& ctx) const{
 
     //creation de l'instance de partie
     Partie * partie = Partie::get_instance();
-    Joueur* joueur_actuel = partie->get_tab_joueurs()[possesseur];
+    Joueur* joueur_actuel = partie->get_tab_joueurs()[ctx.possesseur];
 
     //on verifie si le joueur selectionne a bien CONSTRUIT le Port
     if(joueur_actuel->monument_construit("Port")){

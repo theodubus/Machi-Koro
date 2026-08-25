@@ -10,13 +10,13 @@ MoonsterBurger::MoonsterBurger() :
                      list<unsigned int>{8},
                      type_bat::Restaurant){}
 
-void MoonsterBurger::declencher_effet(unsigned int possesseur, int bonus) const{
+void MoonsterBurger::declencher_effet(const ContexteDeclenchement& ctx) const{
     Partie * partie = Partie::get_instance();
-    Joueur* joueur_possesseur = partie->get_tab_joueurs()[possesseur];
+    Joueur* joueur_possesseur = partie->get_tab_joueurs()[ctx.possesseur];
     //Trouver un joueur qui a cette carte
-    if(partie->get_joueur_actuel() != possesseur){
+    if(ctx.joueur_actuel != ctx.possesseur){
         partie->get_vue_partie()->get_vue_infos()->add_info("Activation de l'effet du Moonster burger du joueur \""+ joueur_possesseur->get_nom() + "\"");
-        partie->transfert_argent(partie->get_joueur_actuel(), possesseur, 1 + bonus);
+        partie->transfert_argent(ctx.joueur_actuel, ctx.possesseur, 1 + ctx.supplement);
     }
     else{
         throw gameException("On ne peut pas se donner d'argent a soi meme");

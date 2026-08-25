@@ -12,11 +12,11 @@ MgaGameCenter::MgaGameCenter() :
     ///Constructeur de MgaGameCenter
 }
 
-void MgaGameCenter::declencher_effet(unsigned int possesseur, int bonus) const{
+void MgaGameCenter::declencher_effet(const ContexteDeclenchement& ctx) const{
     /// Effet de la classe MGA Game Center
     Partie* instance = Partie::get_instance();
     const vector<Joueur *> &tab_joueurs = instance->get_tab_joueurs();
-    Joueur *j_actuel = tab_joueurs[possesseur];
+    Joueur *j_actuel = tab_joueurs[ctx.possesseur];
 
     // On verifie que le joueur possede au moins un batiment non violet
     map<Batiment*, unsigned int> liste_bat_bleu = j_actuel->get_liste_batiment(Bleu);
@@ -49,7 +49,7 @@ void MgaGameCenter::declencher_effet(unsigned int possesseur, int bonus) const{
         // se paie pas soi-meme) : sans ce filet, la fermeture ci-dessous etait sautee
         // et la carte restait activable au tour suivant.
         try {
-            batiment->declencher_effet(possesseur, bonus);
+            batiment->declencher_effet(ctx);
         }
         catch (exception const& e) {
             instance->get_vue_partie()->get_vue_infos()->add_info(

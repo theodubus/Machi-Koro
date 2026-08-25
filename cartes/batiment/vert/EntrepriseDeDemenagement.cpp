@@ -10,11 +10,11 @@ EntrepriseDeDemenagement::EntrepriseDeDemenagement()
                    {9, 10},
                    type_bat::Entreprise) {}
 
-void EntrepriseDeDemenagement::declencher_effet(unsigned int possesseur, int bonus) const {
+void EntrepriseDeDemenagement::declencher_effet(const ContexteDeclenchement& ctx) const {
     /// Effet de l'EntrepriseDeDemenagement
 
     /// DON DE L'ETABLISSEMENT
-    unsigned int j_act_index = Partie::get_instance()->get_joueur_actuel();
+    unsigned int j_act_index = ctx.joueur_actuel;
     Partie * partie = Partie::get_instance();
     Joueur* j_actuel = partie->get_tab_joueurs()[j_act_index];
 
@@ -54,6 +54,6 @@ void EntrepriseDeDemenagement::declencher_effet(unsigned int possesseur, int bon
 
     /// TRANSACTION AVEC LA BANQUE
     // On donne 4 pieces au joueur actuel
-    j_actuel->set_argent(j_actuel->get_argent() + 4 + bonus);
+    j_actuel->set_argent(j_actuel->get_argent() + 4 + ctx.supplement);
 
 }

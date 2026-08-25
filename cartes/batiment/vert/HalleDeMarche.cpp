@@ -10,9 +10,9 @@ HalleDeMarche::HalleDeMarche()
                    {12, 13},
                    type_bat::Usine) {}
 
-void HalleDeMarche::declencher_effet(unsigned int possesseur, int bonus) const {
+void HalleDeMarche::declencher_effet(const ContexteDeclenchement& ctx) const {
     /// Effet de la HalleDeMarche
-    unsigned int j_act_index =  Partie::get_instance()->get_joueur_actuel();
+    unsigned int j_act_index =  ctx.joueur_actuel;
     Partie * partie = Partie::get_instance();
     Joueur* j_actuel = partie->get_tab_joueurs()[j_act_index];
 
@@ -24,5 +24,5 @@ void HalleDeMarche::declencher_effet(unsigned int possesseur, int bonus) const {
     }
 
     // On donne 2 pieces par restaurant
-    j_actuel->set_argent(j_actuel->get_argent() + 2 * nb_restaurant * (1 + bonus));
+    j_actuel->set_argent(j_actuel->get_argent() + 2 * nb_restaurant * (1 + ctx.supplement));
 }

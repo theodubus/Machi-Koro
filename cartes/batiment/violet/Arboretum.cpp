@@ -14,12 +14,12 @@ Arboretum::Arboretum():
 
 
 
-void Arboretum::declencher_effet(unsigned int possesseur, int bonus) const{
+void Arboretum::declencher_effet(const ContexteDeclenchement& ctx) const{
     /// Effet de l'arboretum
     Partie *partie = Partie::get_instance();
     unsigned int somme_totale = 0;
     vector<Joueur*> tab_joueurs = partie->get_tab_joueurs();
-    partie->get_vue_partie()->get_vue_infos()->add_info("Activation de l'effet du Arboretum du joueur \"" + tab_joueurs[possesseur]->get_nom());
+    partie->get_vue_partie()->get_vue_infos()->add_info("Activation de l'effet du Arboretum du joueur \"" + tab_joueurs[ctx.possesseur]->get_nom());
 
     // Calcul de l'argent total
     for (auto joueur : tab_joueurs){

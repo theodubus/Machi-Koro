@@ -25,7 +25,7 @@ void BanqueDeMinivilles::a_l_achat(unsigned int acheteur) const {
             "\" recoit 5 pieces de la banque a l'achat de la Banque de Minivilles");
 }
 
-void BanqueDeMinivilles::declencher_effet(unsigned int possesseur, int bonus) const{
+void BanqueDeMinivilles::declencher_effet(const ContexteDeclenchement& ctx) const{
     /// Effet de l'BanqueDeMinivilles
 
     // Le don de 5 pieces se fait a l'achat, voir a_l_achat().
@@ -33,7 +33,7 @@ void BanqueDeMinivilles::declencher_effet(unsigned int possesseur, int bonus) co
     /// TRANSACTION AVEC LA BANQUE
     // Le joueur actuel paye 2 pieces a la banque
 
-    unsigned int j_act_index =  Partie::get_instance()->get_joueur_actuel();
+    unsigned int j_act_index =  ctx.joueur_actuel;
 
 
     Partie * partie = Partie::get_instance();

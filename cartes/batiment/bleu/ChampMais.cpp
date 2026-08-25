@@ -11,11 +11,11 @@ ChampMais::ChampMais() :
         type_bat::Champ){}
 ///Constructeur de Ferme
 
-void ChampMais::declencher_effet(unsigned int possesseur, int bonus) const{
+void ChampMais::declencher_effet(const ContexteDeclenchement& ctx) const{
 
     //creation de l'instance de partie
     Partie * partie = Partie::get_instance();
-    Joueur* joueur_actuel = partie->get_tab_joueurs()[possesseur];
+    Joueur* joueur_actuel = partie->get_tab_joueurs()[ctx.possesseur];
     unsigned int arg = joueur_actuel->get_argent();
 
 

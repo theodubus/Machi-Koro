@@ -10,12 +10,12 @@ Port::Port()
     /// Constructeur de Port
 }
 
-void Port::declencher_effet(unsigned int possesseur, int bonus) const {
+void Port::declencher_effet(const ContexteDeclenchement& ctx) const {
     Partie *partie = Partie::get_instance();
     if (partie->get_de_1() + partie->get_de_2() >= 10) {
-        Joueur *joueur = partie->get_tab_joueurs()[possesseur];
+        Joueur *joueur = partie->get_tab_joueurs()[ctx.possesseur];
 
-        if (partie->get_tab_joueurs()[possesseur]->get_est_ia()) {
+        if (partie->get_tab_joueurs()[ctx.possesseur]->get_est_ia()) {
             if (rand() % 4 == 1) {
                 partie->get_vue_partie()->get_vue_infos()->add_info("Activation de l'effet du Port du joueur \"" + joueur->get_nom() + "\"");
                 // On ajoute 2 au resultat, et non 1 a chaque de : le livret precise

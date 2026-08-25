@@ -12,11 +12,11 @@ PetitBateauDePeche::PetitBateauDePeche() :
 ///Constructeur de BateauPeche
 
 
-void PetitBateauDePeche::declencher_effet(unsigned int possesseur, int bonus) const{
+void PetitBateauDePeche::declencher_effet(const ContexteDeclenchement& ctx) const{
 
     //creation de l'instance de partie
     Partie * partie = Partie::get_instance();
-    Joueur* joueur_actuel = partie->get_tab_joueurs()[possesseur];
+    Joueur* joueur_actuel = partie->get_tab_joueurs()[ctx.possesseur];
 
     if(joueur_actuel->monument_construit("Port")){
         partie->get_vue_partie()->get_vue_infos()->add_info("Activation de l'effet du PetitBateauDePeche du joueur \"" + joueur_actuel->get_nom() + "\"");

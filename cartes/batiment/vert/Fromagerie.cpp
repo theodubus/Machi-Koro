@@ -10,9 +10,9 @@ Fromagerie::Fromagerie()
                    {7},
                    type_bat::Usine) {}
 
-void Fromagerie::declencher_effet(unsigned int possesseur, int bonus) const {
+void Fromagerie::declencher_effet(const ContexteDeclenchement& ctx) const {
     /// Effet de la Fromagerie
-    unsigned int j_act_index =  Partie::get_instance()->get_joueur_actuel();
+    unsigned int j_act_index =  ctx.joueur_actuel;
     Partie * partie = Partie::get_instance();
     Joueur* j_actuel = partie->get_tab_joueurs()[j_act_index];
 
@@ -24,5 +24,5 @@ void Fromagerie::declencher_effet(unsigned int possesseur, int bonus) const {
     }
 
     // On donne 3 pieces par betail
-    j_actuel->set_argent(j_actuel->get_argent() + 3 * nb_betail * (1 + bonus));
+    j_actuel->set_argent(j_actuel->get_argent() + 3 * nb_betail * (1 + ctx.supplement));
 }

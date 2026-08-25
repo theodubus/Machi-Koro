@@ -10,15 +10,15 @@ ClubPrive::ClubPrive() :
                      list<unsigned int>{12,13,14},
                      type_bat::Restaurant){}
 
-void ClubPrive::declencher_effet(unsigned int possesseur, int bonus) const{
+void ClubPrive::declencher_effet(const ContexteDeclenchement& ctx) const{
     Partie * partie = Partie::get_instance();
-    Joueur* joueur_possesseur = partie->get_tab_joueurs()[possesseur];
-    Joueur* joueur_actuel = partie->get_tab_joueurs()[partie->get_joueur_actuel()];
+    Joueur* joueur_possesseur = partie->get_tab_joueurs()[ctx.possesseur];
+    Joueur* joueur_actuel = partie->get_tab_joueurs()[ctx.joueur_actuel];
 
-    if (partie->get_joueur_actuel() != possesseur){
+    if (ctx.joueur_actuel != ctx.possesseur){
         if(joueur_actuel->nb_monuments_construits() >= 3){
             partie->get_vue_partie()->get_vue_infos()->add_info( "Activation de l'effet du Club Prive du joueur \""+ joueur_possesseur->get_nom() + "\"");
-            partie->transfert_argent(partie->get_joueur_actuel(), possesseur, joueur_actuel->get_argent());
+            partie->transfert_argent(ctx.joueur_actuel, ctx.possesseur, joueur_actuel->get_argent());
         }
     }
     else{
