@@ -11,7 +11,7 @@ Fleuriste::Fleuriste()
                    type_bat::Commerce) {}
 
 void Fleuriste::declencher_effet(const ContexteDeclenchement& ctx) const {
-    /// Effet de la FabriqueDeMeubles
+    /// Effet du Fleuriste
     unsigned int index_possesseur =  ctx.possesseur;
     Partie * partie = Partie::get_instance();
     Joueur* j_actuel = partie->get_tab_joueurs()[index_possesseur];

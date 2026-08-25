@@ -7,7 +7,7 @@ FabriqueDuPereNoel::FabriqueDuPereNoel() :
                  "Si le jet de de est casse vous gagnez 3 pieces",
                  "../assets/monuments/FabriqueDuPereNoel.png",
                  "../assets/monuments/FabriqueDuPereNoel.png") {
-    /// Constructeur de Centre commercial
+    /// Constructeur de la Fabrique du Pere Noel
 }
 
 void FabriqueDuPereNoel::declencher_effet(const ContexteDeclenchement& ctx) const {

@@ -45,6 +45,13 @@ en cas d'écart, donc il est utilisable en intégration continue.
 la table — sauf si la transcription elle-même est fautive, auquel cas il faut
 regarder le visuel dans `assets/` avant de trancher.
 
+Attention à ce que cet outil **ne** couvre **pas** : il vérifie les *données*
+(coût, numéros, couleur, type, image), jamais la *logique* des effets. Les 47
+`declencher_effet()` ont été relus une fois à la main, confrontés à la
+description que porte chaque carte : aucun écart de comportement. Rien
+n'automatise ce contrôle, il faut le refaire à la main après toute modification
+d'effet.
+
 ## Jouer des parties automatiquement
 
 Il n'y a pas de tests unitaires. Le filet de sécurité est une batterie de
@@ -80,6 +87,12 @@ Ne pas revenir dessus sans une source au moins équivalente.
 | Cartes liées au Port | exigent un Port **construit** | livret et cartes |
 | Hôtel de ville, Fabrique du Père Noël | monuments offerts construits, hors condition de victoire | livret et fiche produit |
 | Fabrique : lancé cassé | 3 pièces **et** relance du même nombre de dés | règle de la carte |
+
+Un point reste sans source : le **Club privé** prend « toutes les pièces » du
+joueur actif. Il porte l'icône tasse, donc le Centre commercial devrait en
+principe le majorer d'une pièce — mais on ne majore pas « tout ce qu'il a ». Ni
+le livret ni la FAQ ne tranchent. Le code ne majore pas, ce qui est la lecture
+défendable ; ne pas changer sans source.
 
 Deux valeurs ne reposent sur aucune source publiée, et ne le peuvent pas :
 
@@ -133,6 +146,10 @@ Deux valeurs ne reposent sur aucune source publiée, et ne le peuvent pas :
   entrées pour la même carte. Plusieurs cartes en dépendent, dont le `break` du
   Fleuriste. Un test qui construit ses cartes avec `new` casse cette hypothèse
   et mesure autre chose que le jeu.
+- `EntrepriseRenovation` ferme le bâtiment *choisi par le joueur* plutôt que
+  celui trouvé chez chaque adversaire, et `Fleuriste` comme `CaveAVin` sortent
+  de leur boucle de comptage par un `break`. Les trois ne sont corrects que
+  parce qu'un nom de carte correspond à un seul pointeur (voir ci-dessus).
 - Les parties de la batterie ne sont **pas reproductibles** d'une exécution à
   l'autre, même à graine fixée et sans ASLR : le harnais ferme les fenêtres
   modales sur une minuterie, et l'instant où il les intercepte change l'issue.

@@ -9,7 +9,7 @@ ChampMais::ChampMais() :
         Bleu,
         list<unsigned int>{3,4},
         type_bat::Champ){}
-///Constructeur de Ferme
+///Constructeur de ChampMais
 
 void ChampMais::declencher_effet(const ContexteDeclenchement& ctx) const{
 
