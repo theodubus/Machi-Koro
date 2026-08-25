@@ -37,7 +37,11 @@ VueJoueur::VueJoueur(Joueur* j,bool e_j_a, QWidget *parent) : carte_choisie(null
     monument_label->setAlignment(Qt::AlignCenter);
     argent=new QLCDNumber;
     argent->display((int)joueur->get_argent());
-    argent->setFixedSize(70,30);
+    argent->setDigitCount(3);
+    argent->setSegmentStyle(QLCDNumber::Flat);
+    // 70 x 30 avec cinq chiffres par defaut : les segments etaient trop ecrases
+    // pour qu'on lise la fortune du joueur.
+    argent->setFixedSize(90, 46);
 
     // Barre avec les informations du joueur
     layout_informations = new QHBoxLayout;
@@ -83,6 +87,22 @@ VueJoueur::VueJoueur(Joueur* j,bool e_j_a, QWidget *parent) : carte_choisie(null
                 // Ajout du widget
                 layout_batiments->addWidget(nb_bat,ind_couleurs,ind_bat, Qt::AlignCenter);
                 layout_batiments->setAlignment(nb_bat,Qt::AlignTop | Qt::AlignRight);
+            }
+            // Pieces posees sur la carte, pour la Startup. Sans cet affichage, le
+            // joueur ne pouvait pas savoir combien de pieces sa Startup portait,
+            // alors que c'est ce qui determine son revenu.
+            unsigned int jetons = j->get_jetons(bat.first->get_nom());
+            if (jetons > 0) {
+                QLabel* nb_jetons = new QLabel;
+                nb_jetons->setText(QString::number(jetons));
+                nb_jetons->setToolTip(QString::number(jetons) + " piece(s) placee(s) sur cette carte");
+                nb_jetons->setStyleSheet("QLabel { color : black; background-color : gold; "
+                                         "border : 1px solid black; border-radius : 10px; "
+                                         "font-weight : bold; }");
+                nb_jetons->setFixedSize(20,20);
+                nb_jetons->setAlignment(Qt::AlignCenter);
+                layout_batiments->addWidget(nb_jetons,ind_couleurs,ind_bat, Qt::AlignCenter);
+                layout_batiments->setAlignment(nb_jetons,Qt::AlignBottom | Qt::AlignRight);
             }
             // Incrémentation
             ind_bat++;
@@ -160,6 +180,17 @@ VueJoueur::VueJoueur(Joueur* j,bool e_j_a, QWidget *parent) : carte_choisie(null
 
     // Définition du layout principal
     setLayout(layout_informations);
+}
+
+VueJoueur::~VueJoueur() {
+    /// La fenetre des batiments fermes vit en dehors de l'arbre de widgets : elle
+    /// est ouverte a la demande et n'a pas de parent, donc Qt ne la reprend pas.
+    /// Les trois vecteurs, eux, ne contiennent que des adresses : leurs VueCarte
+    /// appartiennent aux dispositions qui les portent.
+    delete fenetre_bat_fermes;
+    delete vue_batiments;
+    delete vue_batiments_ferme;
+    delete vue_monuments;
 }
 
 void VueJoueur::batimentClique(VueCarte* vc){

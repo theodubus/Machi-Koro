@@ -1,4 +1,3 @@
-#include <QStyleFactory>
 #include "VuePioche.h"
 #include "Partie.h"
 
@@ -22,6 +21,5 @@ VuePioche::VuePioche(Pioche* pioche, QWidget *parent) {
     barre_pioche->setRange(0,(int)pioche->get_taille_init());
     barre_pioche->setValue((int)pioche->get_taille());//valeur que l'on devra mettre à jour à chaque fois qu'on pioche une carte
     barre_pioche->setFixedWidth(280);
-    barre_pioche->setStyle(QStyleFactory::create("Fusion"));
     this->addWidget(barre_pioche,100, Qt::AlignCenter);
 }

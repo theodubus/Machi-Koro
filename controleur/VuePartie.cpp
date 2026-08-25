@@ -49,7 +49,10 @@ VuePartie::VuePartie(QWidget *parent){
     }
     // Profil de la partie
     label_edj->setText("Profil de la partie : " + QString::fromStdString(nom_edj));
-    label_edj->setFixedSize(300, 50);
+    // Une taille fixe de 300 px coupait le titre des que des extensions etaient
+    // ajoutees : « rofil de la partie : Standard + GreenValley + Marin ».
+    label_edj->setMinimumSize(320, 50);
+    label_edj->setWordWrap(true);
     label_edj->setAlignment(Qt::AlignCenter);
 
     entete_gauche->addWidget(label_edj);
@@ -57,14 +60,19 @@ VuePartie::VuePartie(QWidget *parent){
     infos_partie = new QLabel();
     string infos_ma_partie = "Nombre de joueurs : " + to_string(partie_actuelle->get_tab_joueurs().size()) + "\nNombre de monuments pour gagner : " + to_string(partie_actuelle->get_nb_monuments_win());
     infos_partie->setText(QString::fromStdString(infos_ma_partie));
-    infos_partie->setFixedSize(300, 50);
+    // Meme correction que ci-dessus : « Nombre de monuments pour gagner : 4 » ne
+    // tient pas dans 300 px et se terminait par « pour gagn ».
+    infos_partie->setMinimumSize(320, 50);
+    infos_partie->setWordWrap(true);
     entete_gauche->addWidget(infos_partie, 0, Qt::AlignCenter);
 
     //Affichage du nom du joueur actuel
     label_joueur_actuel = new QLabel;
     string nom_joueur = "Joueur actuel : \"" + partie_actuelle->get_tab_joueurs()[partie_actuelle->get_joueur_actuel()]->get_nom() + "\"";
     label_joueur_actuel->setText(QString::fromStdString(nom_joueur));
-    label_joueur_actuel->setFixedSize(300, 30);
+    // Le nom est saisi par le joueur : rien ne garantit qu'il tienne dans 300 px.
+    label_joueur_actuel->setMinimumSize(320, 30);
+    label_joueur_actuel->setWordWrap(true);
     label_joueur_actuel->setAlignment(Qt::AlignCenter);
     label_joueur_actuel->setStyleSheet("QLabel { background-color : transparent; color : green; }");
     entete_gauche->addWidget(label_joueur_actuel, 0, Qt::AlignCenter);
@@ -72,7 +80,7 @@ VuePartie::VuePartie(QWidget *parent){
     label_tour_actuel = new QLabel;
     string tour_actuel = "Tour actuel : " + to_string(partie_actuelle->get_compteur_tour() / partie_actuelle->get_tab_joueurs().size() + 1);
     label_tour_actuel->setText(QString::fromStdString(tour_actuel));
-    label_tour_actuel->setFixedSize(300, 20);
+    label_tour_actuel->setMinimumSize(320, 20);
     label_tour_actuel->setAlignment(Qt::AlignCenter);
     label_tour_actuel->setStyleSheet("QLabel { background-color : transparent; color : blue; }");
     entete_gauche->addWidget(label_tour_actuel, 0, Qt::AlignCenter);
@@ -108,6 +116,8 @@ VuePartie::VuePartie(QWidget *parent){
     lcd_de1->display((int)partie_actuelle->get_de_1());
     lcd_de1->setDigitCount(1);
     lcd_de1->setSegmentStyle(QLCDNumber::Flat);
+    // Sans taille minimale, l'afficheur se reduisait a quelques pixels illisibles.
+    lcd_de1->setMinimumSize(48, 60);
     layout_de_1->addWidget(lcd_de1, 0, Qt::AlignCenter);
     layout_de_1->setAlignment(Qt::AlignCenter);
 
@@ -115,6 +125,7 @@ VuePartie::VuePartie(QWidget *parent){
     lcd_de2->display((int)partie_actuelle->get_de_2());
     lcd_de2->setDigitCount(1);
     lcd_de2->setSegmentStyle(QLCDNumber::Flat);
+    lcd_de2->setMinimumSize(48, 60);
     layout_de_2->addWidget(lcd_de2, 0, Qt::AlignCenter);
     layout_de_2->setAlignment(Qt::AlignCenter);
 
@@ -175,7 +186,6 @@ VuePartie::VuePartie(QWidget *parent){
     unsigned int largeur = floor(sqrt(partie_actuelle->get_shop()->get_nb_tas_reel()));
     scroll_shop->setFixedWidth(130 * largeur);
     scroll_shop->setFixedHeight(260);
-    scroll_shop->setStyle(QStyleFactory::create("Fusion"));
     body->addWidget(scroll_shop,100, Qt::AlignCenter);
 
     // Informations sur le tour
@@ -235,7 +245,9 @@ void VuePartie::d_click(){
     }
 
     // Remplacement par la nouvelle
-    layout->replaceWidget(old, vue_joueur);
+    // replaceWidget rend l'element de disposition qui contenait l'ancien widget :
+    // il appartient a l'appelant, qui doit le detruire.
+    delete layout->replaceWidget(old, vue_joueur);
     vue_joueur->setFixedSize(700,300);
     delete old;
     // Mise à jour de l'affichage
@@ -258,7 +270,9 @@ void VuePartie::g_click(){
     }
 
     // Remplacement par la nouvelle
-    layout->replaceWidget(old, vue_joueur);
+    // replaceWidget rend l'element de disposition qui contenait l'ancien widget :
+    // il appartient a l'appelant, qui doit le detruire.
+    delete layout->replaceWidget(old, vue_joueur);
     vue_joueur->setFixedSize(700,300);
     delete old;
     // Mise à jour de l'affichage
@@ -274,7 +288,9 @@ void VuePartie::update_vue_joueur() {
     vue_joueur = new VueJoueur(partie_actuelle->get_tab_joueurs()[partie_actuelle->get_joueur_actuel()],true,  parent_fenetre);
 
     // Remplacement par la nouvelle
-    layout->replaceWidget(old, vue_joueur);
+    // replaceWidget rend l'element de disposition qui contenait l'ancien widget :
+    // il appartient a l'appelant, qui doit le detruire.
+    delete layout->replaceWidget(old, vue_joueur);
     vue_joueur->setFixedSize(700,300);
     delete old;
     // Mise à jour de l'affichage
@@ -282,75 +298,51 @@ void VuePartie::update_vue_joueur() {
 }
 
 void VuePartie::update_des() {
-
-    // Nouveau code
-
-    unsigned int de1 = Partie::get_instance()->get_de_1();
-    unsigned int de2 = Partie::get_instance()->get_de_2();
-
-    VueDes* old = view_des;
-    QWidget* old_widget = fenetre_des;
-
-    view_des = new VueDes();
-    fenetre_des = new QWidget;
-    fenetre_des->setLayout(view_des);
-    body_gauche->addWidget(fenetre_des, 100, Qt::AlignCenter);
-
-    delete old;
-    delete old_widget;
-    update();
-
-    view_des->launch_des(de1, de2);
-
-
-    // ancien code
-    // Mise à jour de l'affichage des dés
+    /// Rafraichit l'affichage des des.
+    ///
+    /// Cette fonction reconstruisait la vue des des et les deux afficheurs a chaque
+    /// appel, soit cinq fois ou plus par tour, en abandonnant les anciens elements
+    /// de disposition. Elle appelait aussi set_moment_achat(true) : une fonction
+    /// d'affichage rouvrait la phase d'achat hors de son moment. Les deux sont
+    /// supprimes ; on se contente desormais de mettre a jour ce qui est affiche.
     Partie* partie_actuelle = Partie::get_instance();
 
-    QLCDNumber* old_de_1 = lcd_de1;
-    QLCDNumber* old_de_2 = lcd_de2;
-    lcd_de1 = new QLCDNumber;
-    lcd_de1->display((int)partie_actuelle->get_de_1());
-    lcd_de1->setDigitCount(1);
-    lcd_de1->setSegmentStyle(QLCDNumber::Flat);
+    unsigned int de1 = partie_actuelle->get_de_1();
+    unsigned int de2 = partie_actuelle->get_de_2();
 
+    // Un de nul veut dire « ce de n'a pas ete lance », pas « il est tombe sur zero ».
+    // Les afficheurs montraient un 0 trompeur : on masque plutot la ligne concernee.
+    affichage_de_1->setVisible(de1 != 0);
+    lcd_de1->setVisible(de1 != 0);
+    if (de1 != 0) lcd_de1->display((int) de1);
 
-    lcd_de2 = new QLCDNumber;
-    lcd_de2->display((int)partie_actuelle->get_de_2());
-    lcd_de2->setDigitCount(1);
-    lcd_de2->setSegmentStyle(QLCDNumber::Flat);
+    affichage_de_2->setVisible(de2 != 0);
+    lcd_de2->setVisible(de2 != 0);
+    if (de2 != 0) lcd_de2->display((int) de2);
 
-    partie_actuelle->set_moment_achat(true);
-    layout_de_1->replaceWidget(old_de_1, lcd_de1);
-    layout_de_2->replaceWidget(old_de_2, lcd_de2);
-    delete old_de_1;
-    delete old_de_2;
+    view_des->launch_des(de1, de2);
     update();
 }
 
 void VuePartie::update_nom_joueur(){
-    // Mise à jour du nom du joueur actuel dans l'entete
+    /// Rafraichit le nom du joueur et le numero de tour dans l'entete.
+    ///
+    /// Les deux etiquettes sont posees dans l'entete par le constructeur : il suffit
+    /// de changer leur texte. Elles etaient detruites, recreees puis rajoutees en
+    /// fin de disposition a chaque tour, ce qui refaisait toute la mise en page pour
+    /// un texte de quelques caracteres.
     Partie* partie_actuelle = Partie::get_instance();
-    QLabel* old_nom_joueur = label_joueur_actuel;
-    label_joueur_actuel = new QLabel();
-    string nom_joueur = "Joueur actuel : \"" + partie_actuelle->get_tab_joueurs()[partie_actuelle->get_joueur_actuel()]->get_nom() + "\"";
+
+    string nom_joueur = "Joueur actuel : \"" +
+                        partie_actuelle->get_tab_joueurs()[partie_actuelle->get_joueur_actuel()]->get_nom() +
+                        "\"";
     label_joueur_actuel->setText(QString::fromStdString(nom_joueur));
-    label_joueur_actuel->setFixedSize(300, 50);
-    label_joueur_actuel->setAlignment(Qt::AlignCenter);
-    label_joueur_actuel->setStyleSheet("QLabel { background-color : transparent; color : green;}");
-    entete_gauche->addWidget(label_joueur_actuel);
 
-    QLabel* old_tour = label_tour_actuel;
-    label_tour_actuel = new QLabel();
-    string tour_actuel = "Tour actuel : " + to_string(partie_actuelle->get_compteur_tour() / partie_actuelle->get_tab_joueurs().size() + 1);
+    string tour_actuel = "Tour actuel : " +
+                         to_string(partie_actuelle->get_compteur_tour() /
+                                   partie_actuelle->get_tab_joueurs().size() + 1);
     label_tour_actuel->setText(QString::fromStdString(tour_actuel));
-    label_tour_actuel->setFixedSize(300, 20);
-    label_tour_actuel->setAlignment(Qt::AlignCenter);
-    label_tour_actuel->setStyleSheet("QLabel { background-color : transparent; color : blue; }");
-    entete_gauche->addWidget(label_tour_actuel);
 
-    delete old_tour;
-    delete old_nom_joueur;
     update();
 }
 
@@ -388,8 +380,9 @@ void VuePartie::update_vue_shop() {
     unsigned int largeur = floor(sqrt(partie_actuelle->get_shop()->get_nb_tas_reel()));
     scroll_shop->setFixedWidth(130 * largeur);
     scroll_shop->setFixedHeight(520);
-    scroll_shop->setStyle(QStyleFactory::create("Fusion"));
-    body->addWidget(scroll_shop,100, Qt::AlignCenter);
+    // replaceWidget et non addWidget : ce dernier ajoutait en fin de disposition, si
+    // bien que la boutique derivait vers la droite a chaque rafraichissement.
+    delete body->replaceWidget(old_scroll, scroll_shop);
     delete old;
     delete old_widget;
     delete old_scroll;
@@ -406,9 +399,9 @@ void VuePartie::update_vue_pioche() {
     fenetre_pioche = new QWidget;
     fenetre_pioche->setFixedSize(300, 260);
     fenetre_pioche->setLayout(view_pioche);
-    fenetre_pioche->setStyle(QStyleFactory::create("Fusion"));
-    // body_gauche->addWidget(fenetre_pioche, 100, Qt::AlignCenter);
-    body->replaceWidget(old_widget, fenetre_pioche);
+    // La pioche est placee dans body_gauche : remplacer dans body echouait en
+    // silence, et le widget se retrouvait sans position.
+    delete body_gauche->replaceWidget(old_widget, fenetre_pioche);
 
     delete old;
     delete old_widget;
@@ -416,19 +409,9 @@ void VuePartie::update_vue_pioche() {
 }
 
 void VuePartie::update_vue_info () {
-    Partie* partie_actuelle = Partie::get_instance();
-    // On appelle la fonction de mise à jour de l'affichage
-    VueInfo* old = infos;
-    QWidget* old_widget = widget_infos;
-
-    infos = new VueInfo(nullptr);
-    widget_infos = new QWidget;
-    widget_infos->setLayout(infos);
-    widget_infos->setFixedSize(300, 520);
-    body->addWidget(widget_infos, 100, Qt::AlignCenter);
-
-    delete old;
-    delete old_widget;
+    /// Le journal de partie est cumulatif : il n'a aucune raison d'etre detruit et
+    /// recree a chaque tour, ce qui effacait tout l'historique du tour precedent.
+    /// On se contente de le rafraichir.
     update();
 }
 

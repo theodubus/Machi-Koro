@@ -2,6 +2,7 @@
 
 /// QT Includes
 #include <QApplication>
+#include <QStyleFactory>
 #include <QtGui/QScreen>
 #include <QLineEdit>
 #include <QRadioButton>
@@ -287,7 +288,6 @@ void launch_menu_1(QApplication *app){
     model->appendRow(item4);
 
     editionCombo->setMinimumWidth(200);
-    editionCombo->setStyle(QStyleFactory::create("Fusion"));
 
     item1->setFlags(item1->flags() & ~Qt::ItemIsEnabled);
 
@@ -328,11 +328,9 @@ void launch_menu_1(QApplication *app){
 
     auto *validateButton = new QPushButton("Valider");
     validateButton->setFixedWidth(200);
-    validateButton->setStyle(QStyleFactory::create("Fusion"));
 
     auto *cancelButton = new QPushButton("Annuler");
     cancelButton->setFixedWidth(200);
-    cancelButton->setStyle(QStyleFactory::create("Fusion"));
 
     gridLayout->addWidget(validateButton, 5, 0, Qt::AlignCenter);
     gridLayout->addWidget(cancelButton, 5, 1, Qt::AlignCenter);
@@ -381,6 +379,10 @@ void launch_menu_1(QApplication *app){
 int main(int argc, char * argv[]) {
 
     QApplication app(argc, argv);
+    // Le style est pose une fois pour toutes sur l'application, qui en prend la
+    // propriete et le detruira. Tous les widgets le recuperent par defaut : les
+    // appels setStyle() widget par widget construisaient un second objet Fusion,
+    // au rendu identique et que personne ne liberait.
     app.setStyle(QStyleFactory::create("Fusion"));
     launch_menu_1(&app);
 

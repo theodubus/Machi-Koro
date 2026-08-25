@@ -7,11 +7,9 @@
 #include "VueShop.h"
 #include "VuePioche.h"
 #include "VueInfo.h"
-#include <QStyleFactory>
 #include <QFormLayout>
 #include "VueDes.h"
 #include <QtGui>
-#include <QStyleFactory>
 
 
 class VuePartie : public QWidget
