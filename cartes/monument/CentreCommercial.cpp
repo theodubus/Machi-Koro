@@ -13,6 +13,10 @@ CentreCommercial::CentreCommercial() :
 }
 
 void CentreCommercial::declencher_effet(const ContexteDeclenchement& ctx) const {
-    Joueur * joueurs = Partie::get_instance()->get_tab_joueurs()[ctx.possesseur];
-    Partie::get_instance()->get_vue_partie()->get_vue_infos()->add_info("Activation de l'efet du Centre commercial du joueur \"" + joueurs->get_nom() + "\"");
+    /// Ce monument n'a pas d'effet propre a declencher : son supplement d'une piece
+    /// est applique carte par carte, via Batiment::beneficie_centre_commercial().
+    /// Il ne reste ici qu'a signaler son activation dans le journal.
+    Joueur* possesseur = Partie::get_instance()->get_tab_joueurs()[ctx.possesseur];
+    Partie::get_instance()->get_vue_partie()->get_vue_infos()->add_info(
+            "Activation de l'effet du Centre commercial du joueur \"" + possesseur->get_nom() + "\"");
 }

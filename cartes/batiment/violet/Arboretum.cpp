@@ -25,7 +25,9 @@ void Arboretum::declencher_effet(const ContexteDeclenchement& ctx) const{
     for (auto joueur : tab_joueurs){
         somme_totale += joueur->get_argent();
     }
-    // Pour arrondi à l'inférieur
+    // On arrondit vers le HAUT, pas vers le bas : « la banque completera s'il
+    // manque des pieces pour une redistribution egale ». Le complement vient donc
+    // de la banque, et chaque joueur repart avec la meme somme.
     while (somme_totale%tab_joueurs.size() != 0){
         somme_totale++;
     }

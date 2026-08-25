@@ -9,7 +9,7 @@ PetitBateauDePeche::PetitBateauDePeche() :
                  Bleu,
                  list<unsigned int>{8},
                  type_bat::Bateau){}
-///Constructeur de BateauPeche
+///Constructeur de PetitBateauDePeche
 
 
 void PetitBateauDePeche::declencher_effet(const ContexteDeclenchement& ctx) const{
