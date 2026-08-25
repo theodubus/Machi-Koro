@@ -106,15 +106,33 @@ Deux valeurs ne reposent sur aucune source publiée, et ne le peuvent pas :
   empilait la partie entière sur la pile d'appels.
 - `VuePartie` porte `Qt::WA_DeleteOnClose`. La fermer programme sa destruction :
   ne jamais l'utiliser comme parent après l'avoir fermée.
+- `QWidget::setStyle()` **ne prend pas** la propriété du style qu'on lui passe,
+  contrairement à `QApplication::setStyle()`. Le style Fusion est posé une fois
+  dans `main()` et tous les widgets en héritent : un `setStyle()` par widget
+  construit un second objet identique que personne ne libère.
+- `QLayout::replaceWidget()` rend l'élément de disposition qui contenait
+  l'ancien widget. Il appartient à l'appelant, qui doit le détruire.
+- Ne rien libérer dans le destructeur de `VueDes` : ses `QLabel` appartiennent à
+  la disposition et ses `QMovie` à `VuePartie`, détruite dans un ordre non
+  garanti.
+- Une taille imposée par `setFixedSize()` sur une étiquette coupe le texte dès
+  qu'il s'allonge (nom de joueur saisi, extensions cumulées). Préférer
+  `setMinimumSize()` et `setWordWrap()`.
+- Le greffon Qt `offscreen` simule un écran de 800x600 : une fenêtre maximisée y
+  reste enfermée et tout se chevauche. Pour juger une mise en page, sortir de
+  l'état maximisé puis `resize(1920, 1080)` avant `grab()`.
 
 ## Ce qui reste à faire
 
-**Interface** — la vue écrit dans le modèle (`VuePartie::update_des()` appelle
-`set_moment_achat(true)`) ; le journal de partie est détruit et recréé vide à
-chaque tour ; les rafraîchissements emploient `addWidget()` au lieu de
-`replaceWidget()`, ce qui décale les widgets ; environ 460 Ko fuient par partie
-dans la reconstruction des vues ; `VueInfo::add_info()` n'oublie jamais un
-message ; les pièces posées sur la Startup ne sont pas affichées.
+**Interface** — traité. Il reste 968 o qui fuient une fois par partie
+(`Partie::jouer_partie()`, le `QWidget` racine qui porte `VuePartie`) : la
+quantité ne croît pas avec la durée de la partie, et changer la propriété de la
+fenêtre de plus haut niveau demande de valider le comportement graphique réel,
+hors de portée d'un essai sans écran.
+
+Reste aussi, côté confort : la colonne de gauche (dés, pioche) laisse une large
+zone vide, et l'image d'entête est affichée à sa taille native sans s'adapter à
+la fenêtre.
 
 **Architecture**, après l'interface — sortir les effets des cartes du contrôleur.
 Dans l'ordre : remplacer les chaînes de type par une énumération ; faire du bonus
