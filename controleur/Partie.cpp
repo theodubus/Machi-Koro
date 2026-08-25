@@ -45,7 +45,7 @@ Partie* Partie::get_instance() {
     return handler.instance;
 }
 
-Partie::Partie(EditionDeJeu* edition, const map<string, string>& joueurs, const string& shop_type, unsigned int shop_size, const vector<EditionDeJeu *>& extensions) : joueur_actuel(0), nb_monuments_win(0), de_1(0), de_2(0), bonus_des(0), de_chalutier(0), compteur_tour(0) {
+Partie::Partie(EditionDeJeu* edition, const map<string, string>& joueurs, const string& shop_type, unsigned int shop_size, const vector<EditionDeJeu *>& extensions) : joueur_actuel(0), nb_monuments_win(edition->get_nb_monuments_win()), de_1(0), de_2(0), bonus_des(0), de_chalutier(0), compteur_tour(0) {
     ///Constructeur de Partie
 
     //Initialisation des variables utiles
@@ -76,17 +76,23 @@ Partie::Partie(EditionDeJeu* edition, const map<string, string>& joueurs, const 
                 list_monuments.push_back(monu->clone());
             }
 
+            // Une extension peut relever la condition de victoire : Marina la porte
+            // a 6 en apportant deux monuments constructibles de plus.
+            if (ext->get_nb_monuments_win() > nb_monuments_win)
+                nb_monuments_win = ext->get_nb_monuments_win();
         }
     }
 
-    // La victoire s'obtient en construisant tous ses monuments : 4 en Standard,
-    // 6 avec Marina (« la condition de victoire est d'etre le premier a construire
-    // ses 6 monuments »). On compte donc les monuments reellement constructibles,
-    // en excluant ceux qui sont offerts deja construits en debut de partie.
+    // Garde-fou : la condition ne peut pas depasser le nombre de monuments que le
+    // joueur peut reellement batir, sinon la partie ne se termine jamais. Les
+    // monuments offerts deja construits n'en font pas partie.
+    unsigned int constructibles = 0;
     for (auto monu : list_monuments) {
         if (!Joueur::est_monument_de_depart(monu->get_nom()))
-            nb_monuments_win++;
+            constructibles++;
     }
+    if (nb_monuments_win > constructibles)
+        nb_monuments_win = constructibles;
 
     // Initialisation du starter
     vector<Batiment*> starter_bat = get_starter();
