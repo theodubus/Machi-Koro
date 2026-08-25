@@ -10,9 +10,9 @@ HotelDeVille::HotelDeVille() :
     /// Constructeur de HotelDeVille
 }
 
-void HotelDeVille::declencher_effet(unsigned int possesseur, int bonus) const {
+void HotelDeVille::declencher_effet(const ContexteDeclenchement& ctx) const {
     Partie * partie = Partie::get_instance();
-    Joueur * joueur = partie->get_tab_joueurs()[possesseur];
+    Joueur * joueur = partie->get_tab_joueurs()[ctx.possesseur];
 
     if (joueur->get_argent() == 0) {
         partie->get_vue_partie()->get_vue_infos()->add_info("Activation de l'effet de l'Hotel de ville du joueur \"" + joueur->get_nom() + "\"");

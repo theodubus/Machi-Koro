@@ -8,15 +8,15 @@ Boulangerie::Boulangerie()
                    "../assets/batiments/Vert/Boulangerie.png",
                    Vert,
                    {2, 3},
-                   "commerce") {}
+                   type_bat::Commerce) {}
 
-void Boulangerie::declencher_effet(unsigned int possesseur, int bonus) const {
+void Boulangerie::declencher_effet(const ContexteDeclenchement& ctx) const {
     /// Effet de la Boulangerie
-    unsigned int j_act_index =  Partie::get_instance()->get_joueur_actuel();
+    unsigned int j_act_index =  ctx.joueur_actuel;
     Partie * partie = Partie::get_instance();
     Joueur* j_actuel = partie->get_tab_joueurs()[j_act_index];
     partie->get_vue_partie()->get_vue_infos()->add_info("Activation de l'effet de la carte Boulangerie du joueur \""+ j_actuel->get_nom() + "\"");
 
 
-    j_actuel->set_argent(j_actuel->get_argent() + 1 + bonus);
+    j_actuel->set_argent(j_actuel->get_argent() + 1 + ctx.supplement);
 }

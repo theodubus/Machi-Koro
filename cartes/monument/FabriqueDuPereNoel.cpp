@@ -10,7 +10,7 @@ FabriqueDuPereNoel::FabriqueDuPereNoel() :
     /// Constructeur de Centre commercial
 }
 
-void FabriqueDuPereNoel::declencher_effet(unsigned int possesseur, int bonus) const {
+void FabriqueDuPereNoel::declencher_effet(const ContexteDeclenchement& ctx) const {
     /// « Une fois par tour, si votre lance de des est casse, recevez 3 pieces de la
     /// banque. » Un lance casse — « auf der Kippe » dans la version allemande — est
     /// un de qui ne repose pas a plat et n'affiche donc pas de resultat net. La regle
@@ -22,7 +22,7 @@ void FabriqueDuPereNoel::declencher_effet(unsigned int possesseur, int bonus) co
     /// des dont la somme doit valoir 16, soit environ 9,6 % des tours. Ce tirage
     /// n'entre dans aucun autre calcul et ne declenche aucun autre effet.
     Partie *partie = Partie::get_instance();
-    Joueur *joueur = partie->get_tab_joueurs()[possesseur];
+    Joueur *joueur = partie->get_tab_joueurs()[ctx.possesseur];
 
     partie->get_vue_partie()->get_vue_infos()->add_info("Le lance de des du joueur \"" + joueur->get_nom() + "\" est casse : la Fabrique du Pere Noel rapporte 3 pieces et les des sont relances");
 

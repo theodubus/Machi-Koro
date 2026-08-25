@@ -12,7 +12,7 @@ public :
     Gare* clone() const override {return new Gare(*this);};
 
     //*** Methodes ***//
-    void declencher_effet(unsigned int possesseur, int bonus = 0) const override;
+    void declencher_effet(const ContexteDeclenchement& ctx) const override;
 
 };
 

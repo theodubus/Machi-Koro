@@ -11,8 +11,8 @@ Gare::Gare()
     /// Constructeur de Gare
 }
 
-void Gare::declencher_effet(unsigned int possesseur, int bonus) const {
-    Joueur *joueur = Partie::get_instance()->get_tab_joueurs()[possesseur];
+void Gare::declencher_effet(const ContexteDeclenchement& ctx) const {
+    Joueur *joueur = Partie::get_instance()->get_tab_joueurs()[ctx.possesseur];
     Partie *partie = Partie::get_instance();
     if (joueur->get_est_ia()) {
         int choix = rand() % 4;

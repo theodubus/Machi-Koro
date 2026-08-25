@@ -6,6 +6,7 @@
 #include <vector>
 #include <iostream>
 #include "gameExeption.h"
+#include "ContexteDeclenchement.h"
 
 class Carte {
 protected:
@@ -28,8 +29,10 @@ public:
 
     static unsigned int argent_effet(int a);
 
-    virtual std::string get_type() const = 0;
-    virtual void declencher_effet(unsigned int possesseur, int bonus = 0) const = 0;
+    /// Seule question que le controleur posait a get_type() sur une Carte :
+    /// distinguer un batiment d'un monument au moment de l'achat.
+    virtual bool est_monument() const = 0;
+    virtual void declencher_effet(const ContexteDeclenchement& ctx) const = 0;
 
 };
 

@@ -8,11 +8,11 @@ Startup::Startup() :
                  "../assets/batiments/Violet/Startup.png",
                  Violet,
                  list<unsigned int>{10},
-                 "special") {
+                 type_bat::Special) {
     ///Constructeur de Startup
 }
 
-void Startup::declencher_effet(unsigned int possesseur, int bonus) const {
+void Startup::declencher_effet(const ContexteDeclenchement& ctx) const {
     /// Effet de la Startup, applique tel que la carte l'ecrit :
     /// « Recevez 1 piece de la banque pour chaque piece placee sur l'ensemble des
     ///   Startups de tous les joueurs. A la fin de votre tour, placez une piece sur
@@ -21,13 +21,13 @@ void Startup::declencher_effet(unsigned int possesseur, int bonus) const {
     /// rien au joueur.
     Partie* partie = Partie::get_instance();
     const vector<Joueur*>& tab_joueurs = partie->get_tab_joueurs();
-    Joueur* j_actuel = tab_joueurs[possesseur];
+    Joueur* j_actuel = tab_joueurs[ctx.possesseur];
 
     partie->get_vue_partie()->get_vue_infos()->add_info(
             "Activation de l'effet de la Startup du joueur \"" + j_actuel->get_nom() + "\"");
 
     // On compte les pieces posees sur les Startups de TOUS les joueurs, y compris
-    // celles du possesseur.
+    // celles du ctx.possesseur.
     unsigned int total_pieces = 0;
     for (const Joueur* joueur : tab_joueurs) {
         total_pieces += joueur->get_jetons("Startup");

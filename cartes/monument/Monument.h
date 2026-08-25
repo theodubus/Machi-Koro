@@ -15,7 +15,7 @@ class Monument : public Carte{
         virtual Monument* clone() const = 0;
 
         //*** GETTER ***//
-        std::string get_type() const override {return "Monument";};
+        bool est_monument() const override {return true;};
         const std::string& get_path_image_actif() const { return path_image_actif; }
 };
 

@@ -8,11 +8,11 @@ Superette::Superette()
                    "../assets/batiments/Vert/Superette.png",
                    Vert,
                    {4},
-                   "commerce") {}
+                   type_bat::Commerce) {}
 
-void Superette::declencher_effet(unsigned int possesseur, int bonus) const{
+void Superette::declencher_effet(const ContexteDeclenchement& ctx) const{
     /// Effet de la Superette
-    unsigned int j_act_index =  Partie::get_instance()->get_joueur_actuel();
+    unsigned int j_act_index =  ctx.joueur_actuel;
     Partie * partie = Partie::get_instance();
     Joueur* j_actuel = partie->get_tab_joueurs()[j_act_index];
 
@@ -20,5 +20,5 @@ void Superette::declencher_effet(unsigned int possesseur, int bonus) const{
 
     // On donne 3 pieces
     unsigned int argent = j_actuel->get_argent();
-    j_actuel->set_argent(argent + 3 + bonus);
+    j_actuel->set_argent(argent + 3 + ctx.supplement);
 }

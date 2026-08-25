@@ -8,30 +8,30 @@ MaisonEdition::MaisonEdition():
                  "../assets/batiments/Violet/Maison-d-edition.png",
                  Violet,
                  list<unsigned int>{7},
-                 "special") {
+                 type_bat::Special) {
     ///Constructeur de Maison d'Edition
 }
 
 
 
-void MaisonEdition::declencher_effet(unsigned int possesseur, int bonus) const{
+void MaisonEdition::declencher_effet(const ContexteDeclenchement& ctx) const{
     /// Effet de la maison d'edition
     // Variables utiles
     Partie *partie = Partie::get_instance();
     const vector<Joueur*> tab_joueurs = Partie::get_instance()->get_tab_joueurs();
-    Joueur* j_actuel = tab_joueurs[possesseur];
+    Joueur* j_actuel = tab_joueurs[ctx.possesseur];
     partie->get_vue_partie()->get_vue_infos()->add_info("Activation de l'effet de la Maison d'edition du joueur \"" + j_actuel->get_nom() + "\"");
 
     unsigned int nb_bat;
 
     // Parcours du tableau de joueurs
     for (int i = 0; i < tab_joueurs.size(); i++){
-        if (i != possesseur){
+        if (i != ctx.possesseur){
             Joueur* joueur = tab_joueurs[i];
             // On compte le nombre de batiments concernes
-            nb_bat = joueur->count_type("restaurant") + joueur->count_type("commerce");
+            nb_bat = joueur->count_type(type_bat::Restaurant) + joueur->count_type(type_bat::Commerce);
             // On fait le transfert d'argent
-            Partie::get_instance()->transfert_argent(i, possesseur, nb_bat);
+            Partie::get_instance()->transfert_argent(i, ctx.possesseur, nb_bat);
         }
     }
 }

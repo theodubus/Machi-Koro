@@ -9,7 +9,7 @@ public:
     ~CentreAffaires() override = default;
     CentreAffaires(const CentreAffaires& centreAffaires) = default;
     Batiment* clone() const override {return new CentreAffaires(*this);};
-    void declencher_effet(unsigned int possesseur, int bonus = 0) const override;
+    void declencher_effet(const ContexteDeclenchement& ctx) const override;
 };
 
 #endif //MACHI_KORO_CENTREAFFAIRES_H
