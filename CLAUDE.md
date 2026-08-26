@@ -12,9 +12,14 @@ projet de LO21 à l'UTC. ~62 en-têtes et 62 sources, plus les visuels des carte
 - `cartes/` — modèle des cartes. Un fichier par carte, rangé par couleur.
   `Carte` est la classe de base abstraite, `Batiment` et `Monument` en dérivent.
 - `controleur/` — `Partie` (singleton) mène le jeu ; `EditionDeJeu` compose les
-  éditions ; `Pioche` et `Shop` gèrent la distribution. Les `Vue*.cpp` du même
-  dossier sont les vues Qt.
-- `joueur/` — `Joueur` (état) et `VueJoueur` (sa ville à l'écran).
+  éditions ; `Pioche` et `Shop` gèrent la distribution. `VuePartie` est la
+  fenêtre de jeu, `VueInfo` le journal.
+- `joueur/` — `Joueur`, l'état d'un joueur.
+- `vue/` — le plateau, une `QGraphicsScene` de taille logique fixe 1600 x 900.
+  `ScenePlateau` fait la mise en page et met en scène le tour, `VuePlateau` est
+  la `QGraphicsView` qui l'ajuste à la fenêtre, `ItemCarte` et `ItemBouton` sont
+  les éléments, `Decor` dessine tout ce qui n'existe pas dans `assets/`,
+  `StyleJeu` habille les menus et les fenêtres de choix.
 - `assets/` — visuels des cartes, des monuments et des dés.
 
 ## Compiler et lancer
@@ -60,13 +65,23 @@ UndefinedBehaviorSanitizer. Le principe :
 
 - compiler les sources du jeu avec un `main` de remplacement qui crée une partie
   100 % IA et fait tourner la boucle d'évènements ;
-- neutraliser les deux temporisations de `Partie` (`QTimer::singleShot(2000, …)`
-  et `(1000, …)`) **sur une copie de travail**, jamais dans le dépôt ;
+- neutraliser **quatre** temporisations de `Partie`, **sur une copie de travail**
+  et jamais dans le dépôt : `QTimer::singleShot(2000, …)`, `(1000, …)`, et les
+  deux constantes `DELAI_EFFET` et `DELAI_ETAPE` qui cadencent le rejeu du tour.
+  Sans ces deux dernières, une partie de cent tours dure plusieurs minutes ;
 - détecter la fin de partie par `Partie::get_vue_partie() == nullptr`, et penser
   à `app.setQuitOnLastWindowClosed(false)` sinon Qt quitte avant qu'on l'observe.
 
 Couvrir au minimum : Standard seule, + Green Valley, + Marina, + les deux, puis
 Deluxe et Custom, sur plusieurs graines. Une partie dure 60 à 160 tours.
+
+**La batterie ne joue que des IA, et ne passe donc jamais par la scène.** Le
+parcours humain — cliquer une carte, lire le panneau, cliquer « Construire » —
+n'est exercé par rien d'autre qu'une sonde séparée, qui envoie de vrais
+évènements souris à la `QGraphicsView` (`QApplication::sendEvent` sur
+`viewport()`, position obtenue par `mapFromScene`). Cette sonde fonctionne sous
+le greffon `offscreen` : c'est le seul moyen de vérifier que la chaîne clic →
+achat → tour suivant tient encore après un remaniement.
 
 ## Décisions de règles, avec leur source
 
@@ -130,6 +145,32 @@ Deux valeurs ne reposent sur aucune source publiée, et ne le peuvent pas :
   empilait la partie entière sur la pile d'appels.
 - `VuePartie` porte `Qt::WA_DeleteOnClose`. La fermer programme sa destruction :
   ne jamais l'utiliser comme parent après l'avoir fermée.
+- Le tour se **résout d'un bloc**, puis se **rejoue** à l'écran. `Partie::declencher()`
+  photographie les bourses avant et après chaque `declencher_effet()` et empile un
+  `Declenchement` ; `rejouer_effets()` les repasse un par un, avec minuterie, avant
+  d'ouvrir la phase de construction. Conséquences à garder en tête :
+  - `phase_achat()` n'est plus la fin de `jouer_tour()` mais la fin du rejeu ;
+  - les mouvements de pièces sont **déduits** des variations de bourse, aucune
+    des 47 cartes n'a été modifiée pour cela ;
+  - deux monuments se déclenchent *après* le rejeu, l'Aéroport et le Parc
+    d'attractions : `montrer_dernier_effet()` les affiche à part, et doit rester
+    **après** le rafraîchissement de `suite_tour()`, qui détruirait leur mise en
+    lumière ;
+  - les fenêtres modales des cartes à choix s'ouvrent pendant la résolution, donc
+    *avant* le rejeu. C'est assumé : les déplacer demanderait de découper les
+    quatre boucles de couleur en étapes asynchrones.
+- Les objets de la scène sont détruits et recréés par `ScenePlateau::rafraichir()`.
+  Tout pointeur gardé vers un `ItemCarte` doit être oublié à ce moment : c'est ce
+  que fait `vider()` pour `cartes_projetees`.
+- `QGraphicsPixmapItem` n'est **pas** un `QObject` : `QPropertyAnimation(item, "pos")`
+  compile mais n'anime rien. Les jetons sont déplacés par un `QVariantAnimation`
+  dont on branche `valueChanged`.
+- Une carte survolée grandit d'un cinquième et déborde sur ses voisines : il faut
+  la passer devant (`setZValue`) à l'entrée et la remettre à sa place à la sortie,
+  sinon elle passe *sous* la suivante de la rangée.
+- Habiller un `QSpinBox` par feuille de style force Qt à dessiner lui-même ses deux
+  boutons, et il ne sait pas tracer une flèche à partir de bordures CSS : il les
+  remplace par des carrés. `StyleJeu` laisse donc le compteur au style Fusion.
 - `QWidget::setStyle()` **ne prend pas** la propriété du style qu'on lui passe,
   contrairement à `QApplication::setStyle()`. Le style Fusion est posé une fois
   dans `main()` et tous les widgets en héritent : un `setStyle()` par widget
@@ -161,18 +202,37 @@ Deux valeurs ne reposent sur aucune source publiée, et ne le peuvent pas :
   Un remaniement ne peut donc pas être validé en rejouant la même partie avant
   et après. À la place : vérifier que chaque ligne modifiée correspond bien à la
   substitution attendue, et sonder les cartes concernées une à une.
+- Le greffon `offscreen` résout les chemins relatifs depuis le **répertoire
+  courant du processus**, pas depuis l'exécutable. Une sonde lancée d'ailleurs
+  que d'un sous-répertoire direct de la racine affiche des cartes vides — c'est
+  le repli de `ItemCarte`, pas un bogue.
 
 ## Ce qui reste à faire
 
-**Interface** — traité. Il reste 968 o qui fuient une fois par partie
-(`Partie::jouer_partie()`, le `QWidget` racine qui porte `VuePartie`) : la
-quantité ne croît pas avec la durée de la partie, et changer la propriété de la
-fenêtre de plus haut niveau demande de valider le comportement graphique réel,
-hors de portée d'un essai sans écran.
+**Interface** — refaite entièrement. L'ancienne empilait des widgets à tailles
+fixes ; le plateau est maintenant une `QGraphicsScene` de taille logique fixe
+que la vue ajuste à la fenêtre. `VuePartie` n'en garde que la façade attendue par
+le contrôleur et les cartes. `VueShop`, `VueJoueur`, `VueDes` et `VuePioche` ont
+disparu, leur travail étant fait par la scène.
 
-Reste aussi, côté confort : la colonne de gauche (dés, pioche) laisse une large
-zone vide, et l'image d'entête est affichée à sa taille native sans s'adapter à
-la fenêtre.
+Plus aucune fuite attribuable au code du projet — **0 o**, contre 968 o avant la
+refonte : le `QWidget` racine de `jouer_partie()` n'existe plus, et `VuePartie`
+détruit son journal. Restent 1268 o en 16 allocations, toutes internes à Qt.
+
+Reste, côté confort :
+
+- la boutique laisse une bande de tapis vide quand elle tient sur une rangée ;
+- les avatars sont dessinés au trait et ne distinguent que quatre silhouettes,
+  alors que l'édition Custom accepte six joueurs — au-delà, elles se répètent, la
+  couleur seule les sépare ;
+- le journal du tour est écrit pendant la résolution et se trouve donc en avance
+  d'un tour sur le rejeu. Le mettre au pas demanderait de tamponner les messages
+  des 47 cartes.
+
+**Documentation** — `uml-qt.puml` date de la remise initiale et ne décrit plus le
+code : il était déjà périmé avant la refonte graphique (il montre encore
+`declencher_effet(possesseur, bonus)` et un type de bâtiment porté par une
+chaîne). Le README le signale. Le régénérer est un chantier à part entière.
 
 **Architecture** — traité, dans l'ordre prévu : énumération `type_bat` à la place
 des chaînes ; `beneficie_centre_commercial()` posée à la carte ; point d'accroche
@@ -182,6 +242,12 @@ des chaînes ; `beneficie_centre_commercial()` posée à la carte ; point d'accr
 Reste un nettoyage : plusieurs cartes bleues nomment `joueur_actuel` une
 variable locale qui désigne en fait le **possesseur** de la carte, pas le joueur
 dont c'est le tour.
+
+`Carte::get_nom()` rend l'**identifiant interne** — « HotelDeVille », « ChampBle »
+— qui sert de clé partout : recherche d'un monument, comparaison à l'achat, table
+de référence. Ce qu'on montre au joueur, c'est `get_nom_affiche()`, adossé à la
+table `nom_lisible()` de `cartes/Carte.cpp`. Une carte ajoutée sans y figurer
+retombe sur son identifiant : c'est visible, pas silencieux.
 
 Le contrôleur ne branche plus sur le nom d'un **bâtiment** pour lui appliquer un
 effet. Il cite encore dix cartes par leur nom, mais pour autre chose : les six

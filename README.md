@@ -9,7 +9,8 @@ numéro sort produisent des revenus, et l'argent gagné sert à acheter de
 nouvelles cartes ou à construire des monuments. Le premier joueur à avoir
 construit tous les monuments requis par l'édition remporte la partie.
 
-![Aperçu du jeu](game.png)
+![Le plateau pendant la phase des restaurants : le Café de Capucine s'allume et
+prélève une pièce sur le joueur qui a lancé les dés](docs/plateau.png)
 
 ## Sommaire
 
@@ -33,7 +34,8 @@ construit tous les monuments requis par l'édition remporte la partie.
 - Adversaires contrôlés par l'ordinateur, avec trois profils : agressif, défensif ou aléatoire
 - Boutique paramétrable : nombre de piles visibles limité, ou catalogue complet
 - Pioche mélangée à chaque partie et réapprovisionnement automatique de la boutique
-- Interface graphique Qt6 : plateau, journal de partie, animation des dés et consultation des villes adverses
+- Interface graphique Qt6 : un plateau unique où tout est visible en permanence — la boutique, les villes de tous les joueurs, leurs monuments et leur bourse
+- Le tour se déroule sous les yeux du joueur : chaque carte qui produit son effet s'allume chez ceux qu'elle concerne, s'affiche en grand et annonce ce qu'elle vient de faire
 
 ## Déroulement d'un tour
 
@@ -42,6 +44,41 @@ construit tous les monuments requis par l'édition remporte la partie.
 3. **Revenus**, dans l'ordre des couleurs (voir ci-dessous).
 4. **Phase d'achat** — un bâtiment de la boutique, un monument, ou rien.
 5. **Fin de tour** — le joueur rejoue s'il a fait un double et possède le Parc d'attractions.
+
+Ces cinq temps sont affichés en haut du plateau et se cochent au fur et à
+mesure : on sait toujours où l'on en est. Pendant les temps de revenus, seules
+les cartes que l'étape peut activer restent en pleine couleur ; les autres
+s'estompent. La carte qui se déclenche se relève et s'entoure d'un halo doré
+chez **chacun** des joueurs qu'elle concerne, s'affiche en grand dans le panneau
+de droite, et les pièces traversent le plateau du payeur vers le bénéficiaire.
+
+## L'interface
+
+Tout tient sur un seul écran, sans navigation ni fenêtre à ouvrir :
+
+| Zone | Contenu |
+|---|---|
+| **En haut** | Le rail des cinq temps du tour, et le profil de la partie |
+| **Bande supérieure** | Une ville par adversaire : avatar, bourse, monuments, établissements rangés par numéro d'activation |
+| **Au centre, sur le tapis** | La boutique — de 9 à 39 piles, la taille des cartes s'adapte — les dés et la pioche |
+| **Bande inférieure** | La ville complète du joueur dont c'est le tour : ses huit monuments et tous ses établissements, à taille lisible |
+| **À droite** | Le journal du tour, et le panneau qui montre en grand la carte survolée, choisie, ou en train de produire son effet |
+
+Survoler n'importe quelle carte du plateau — y compris chez un adversaire — la
+redresse, l'agrandit et l'affiche en entier dans le panneau de droite : ses
+numéros d'activation, son prix, sa famille et son texte. Les couleurs seules ne
+suffisent pas à décider, et le détail d'une ville adverse est souvent ce qui
+oriente un achat.
+
+Construire se fait en deux gestes : cliquer la carte, puis le bouton
+**Construire**. Un établissement hors de portée reste visible mais voilé ; un
+établissement fermé est couché à 90 degrés, comme le prescrit le livret, et
+continue de compter pour les cartes qui dénombrent.
+
+![Le Chalutier s'active sur un 12 : le socle des dés annonce le bonus du Port qui
+a porté le total de 10 à 12](docs/tour.png)
+
+![Les deux menus de réglage](docs/menus.png)
 
 ## Éditions et extensions
 
@@ -167,12 +204,26 @@ controleur/      Moteur de jeu et vues associées
   EditionDeJeu/    Composition des éditions et extensions
   Pioche.*         Pile de cartes à distribuer
   Shop.*           Boutique
-  Vue*.cpp         Vues Qt du plateau, de la boutique, de la pioche, des dés
-joueur/          Joueur.* (état d'un joueur) et VueJoueur.* (sa ville)
+  VuePartie.*      Fenêtre de jeu, façade sur la scène
+  VueInfo.*        Journal de la partie
+joueur/          Joueur.* — l'état d'un joueur
+vue/             Le plateau
+  ScenePlateau.*   Mise en page et déroulement visuel du tour
+  VuePlateau.*     La QGraphicsView qui l'affiche
+  ItemCarte.*      Une carte posée : survol, mise en lumière, voile, jetons
+  ItemBouton.*     Un bouton dessiné dans la scène
+  Decor.*          Ciel, montagnes, tapis, avatars et pièces, dessinés en Qt
+  StyleJeu.*       Habillage des menus et des fenêtres de choix
 exception/       gameExeption.h
 assets/          Images des cartes, des monuments et des dés
-uml-qt.puml      Diagramme de classes du projet
+docs/            Captures d'écran du README
+uml-qt.puml      Diagramme de classes, hérité du projet d'origine
 ```
+
+> Le diagramme `uml-qt.puml` date de la remise initiale et **ne décrit plus le
+> code** : il montre encore `declencher_effet(possesseur, bonus)` et un type de
+> bâtiment porté par une chaîne, remplacés depuis, et ignore le dossier `vue/`.
+> Il est conservé comme trace du projet, pas comme documentation à jour.
 
 ## Auteurs
 
