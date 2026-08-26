@@ -12,9 +12,11 @@ class Carte;
 /// chaque ville en aligne une par etablissement possede. Elle sait trois choses
 /// que l'ancienne VueCarte ne savait pas faire.
 ///
-/// **Se redresser au survol.** Les cartes sont posees en perspective, ce qui les
-/// rend jolies mais peu lisibles. Survolee, une carte se remet d'aplomb, grandit
-/// et passe au premier plan : on lit son texte sans quitter le plateau.
+/// **Se redresser au survol.** Les cartes sont posees sur la table en
+/// perspective : celles du fond sont deux fois plus petites que celles du bord
+/// proche. Survolee, une carte se souleve du tapis, perd son inclinaison et
+/// rejoint une taille de lecture **identique quelle que soit sa place** : on lit
+/// son texte sans quitter le plateau.
 ///
 /// **S'allumer quand elle joue.** Pendant la resolution, la carte qui se
 /// declenche se souleve et s'entoure d'un halo. C'est ce qui remplace la ligne
@@ -55,8 +57,20 @@ public:
     /// Nombre de jetons poses dessus — la Startup en accumule.
     void set_jetons(unsigned int n);
 
-    /// Allume la carte pendant qu'elle produit son effet.
+    /// Allume la carte pendant qu'elle produit son effet : elle se souleve de la
+    /// table et s'entoure d'un halo.
     void projeter(bool actif, int duree_ms = 220);
+
+    /// Pose la carte sur la table. `u` est l'ecart lateral au centre mesure au
+    /// bord proche, `v` la profondeur (0 au fond, 1 devant). Voir Perspective.
+    void poser(qreal u, qreal v);
+    qreal u() const { return le_u; }
+    qreal v() const { return le_v; }
+
+    /// Epingle la carte a une position fixe de l'ecran, hors de la table : c'est
+    /// le cas des monuments, qui accompagnent la plaque de leur proprietaire et
+    /// ne sont pas etales sur le feutre.
+    void poser_hors_table(const QPointF& coin);
     /// Estompe une carte que la phase en cours ne peut pas activer.
     void set_en_retrait(bool r);
     /// Indice du joueur qui la possede, -1 pour une pile de la boutique. Sert a
@@ -64,9 +78,6 @@ public:
     void set_proprietaire(int j) { le_proprietaire = j; }
     int proprietaire() const { return le_proprietaire; }
     ItemCarte::Role role() const { return le_role; }
-    /// Inclinaison de repos, pour poser les cartes en eventail sur le tapis.
-    void set_pose(qreal degres);
-
     qreal releve() const { return le_releve; }
     void set_releve(qreal v);
     qreal halo() const { return le_halo; }
@@ -83,6 +94,7 @@ protected:
 
 private:
     void animer_vers(qreal cible, int duree_ms);
+    /// Recalcule la transformation projective depuis (u, v) et le relevement.
     void appliquer_pose();
 
     const Carte* la_carte;
@@ -98,8 +110,11 @@ private:
     bool est_ferme = false;
     bool est_indisponible = false;
     bool est_construit = false;
-    qreal pose_degres = 0.0;
-    qreal le_releve = 0.0;   ///< 0 = posee, 1 = redressee et agrandie
+    bool sur_table = true;   ///< faux pour les cartes epinglees a une plaque
+    QPointF coin_fixe;       ///< leur coin haut-gauche, en coordonnees de scene
+    qreal le_u = 0.0;        ///< ecart lateral au centre, au bord proche
+    qreal le_v = 1.0;        ///< profondeur sur la table
+    qreal le_releve = 0.0;   ///< 0 = posee a plat, 1 = soulevee et redressee
     qreal le_halo = 0.0;     ///< 0 = eteinte, 1 = en pleine lumiere
 };
 

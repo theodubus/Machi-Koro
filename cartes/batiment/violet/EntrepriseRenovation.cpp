@@ -57,8 +57,8 @@ void EntrepriseRenovation::declencher_effet(const ContexteDeclenchement& ctx) co
         }
     }
     // Affichage récapitulatif
-    partie->get_vue_partie()->get_vue_infos()->add_info(std::to_string(nb_fermes) + "batiments " + batiment->get_nom() + " ont ete fermes");
-    partie->get_vue_partie()->get_vue_infos()->add_info(" va recevoir " + std::to_string(nb_fermes) + "pieces");
+    partie->get_vue_partie()->get_vue_infos()->add_info(std::to_string(nb_fermes) + " batiment(s) " + batiment->get_nom_affiche() + " ont ete fermes");
+    partie->get_vue_partie()->get_vue_infos()->add_info(j_actuel->get_nom() + " va recevoir " + std::to_string(nb_fermes) + " piece(s)");
     j_actuel->set_argent(j_actuel->get_argent() + nb_fermes);
-    partie->get_vue_partie()->get_vue_infos()->add_info(j_actuel->get_nom() + "possede maintenant " + std::to_string(j_actuel->get_argent()) + " pieces");
+    partie->get_vue_partie()->get_vue_infos()->add_info(j_actuel->get_nom() + " possede maintenant " + std::to_string(j_actuel->get_argent()) + " pieces");
 }

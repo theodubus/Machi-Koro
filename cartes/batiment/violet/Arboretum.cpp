@@ -38,5 +38,5 @@ void Arboretum::declencher_effet(const ContexteDeclenchement& ctx) const{
     for (auto joueur : tab_joueurs){
         joueur->set_argent(montant_par_joueur);
     }
-    partie->get_vue_partie()->get_vue_infos()->add_info("Tous les joueurs ont maintenant " + std::to_string(montant_par_joueur) + " credits !");
+    partie->get_vue_partie()->get_vue_infos()->add_info("Tous les joueurs ont maintenant " + std::to_string(montant_par_joueur) + " piece(s)");
 }

@@ -16,10 +16,40 @@ projet de LO21 à l'UTC. ~62 en-têtes et 62 sources, plus les visuels des carte
   fenêtre de jeu, `VueInfo` le journal.
 - `joueur/` — `Joueur`, l'état d'un joueur.
 - `vue/` — le plateau, une `QGraphicsScene` de taille logique fixe 1600 x 900.
-  `ScenePlateau` fait la mise en page et met en scène le tour, `VuePlateau` est
-  la `QGraphicsView` qui l'ajuste à la fenêtre, `ItemCarte` et `ItemBouton` sont
-  les éléments, `Decor` dessine tout ce qui n'existe pas dans `assets/`,
-  `StyleJeu` habille les menus et les fenêtres de choix.
+  `Perspective` porte **toute la géométrie** : la table et la caméra qui la
+  regarde. `ScenePlateau` fait la mise en page et met en scène le tour,
+  `VuePlateau` est la `QGraphicsView` qui l'ajuste à la fenêtre, `ItemCarte` et
+  `ItemBouton` sont les éléments, `Decor` dessine tout ce qui n'existe pas dans
+  `assets/`, `StyleJeu` habille les menus et les fenêtres de choix.
+
+## La table, et la caméra
+
+Le plateau n'est pas une grille de panneaux : c'est une **table ronde filmée
+d'au-dessus et de trois quarts**, sur laquelle les cartes sont *couchées*. C'est
+la maquette validée, et le point sur lequel une première tentative s'est
+fourvoyée en reconstruisant un tableau de bord plat.
+
+Trois choses à savoir avant d'y toucher :
+
+- **Tout se mesure en unités de table**, pas en pixels. Le tapis a 620 de rayon ;
+  une carte de boutique fait 98 de large *dans le plan*. C'est la caméra qui
+  décide de ce que cela donne à l'écran, et elle change tout d'un coup.
+- **L'inclinaison est le seul réglage qui compte** : le rapport
+  `HAUTEUR_CAMERA / RECUL` de `Perspective.cpp`. Caméra basse, la table s'aplatit
+  et les cartes deviennent des traits ; caméra haute, on tombe sur une vue de
+  dessus. Le réglage actuel regarde la table à environ trente-trois degrés.
+- **La focale et le centre vertical se calculent tout seuls** (`Cadrage`), pour
+  que le tapis projeté tombe à la largeur et à la place voulues. Les fixer à la
+  main obligeait à reprendre tous les autres nombres dès qu'on touchait à
+  l'inclinaison — c'est ce qui a coûté le plus de temps.
+
+Une carte posée occupe un quadrilatère du plan, obtenu par
+`QTransform::quadToQuad`. Soulevée, elle interpole ses quatre coins vers un
+rectangle droit à taille de lecture fixe : c'est le même mécanisme qui sert au
+survol et au projecteur, et c'est ce qui règle la lisibilité que la perspective
+coûte. Les cartes qui **ne sont pas sur la table** — les monuments, épinglés à la
+plaque de leur propriétaire — passent par `poser_hors_table()` : sans cela, le
+premier survol les téléportait au centre du tapis.
 - `assets/` — visuels des cartes, des monuments et des dés.
 
 ## Compiler et lancer
@@ -159,6 +189,11 @@ Deux valeurs ne reposent sur aucune source publiée, et ne le peuvent pas :
   - les fenêtres modales des cartes à choix s'ouvrent pendant la résolution, donc
     *avant* le rejeu. C'est assumé : les déplacer demanderait de découper les
     quatre boucles de couleur en étapes asynchrones.
+- Une ville se **déplie** quand l'étape en cours peut y activer quelque chose, ou
+  quand le joueur a épinglé sa plaque d'un clic. Dépliée, elle avance sur la
+  table et ses cartes grandissent. Les cartes d'une ville s'étalent en éventail
+  sur **une seule rangée** au-delà d'une certaine largeur : les empiler en
+  profondeur enterrait celles du fond sous celles de devant.
 - Les objets de la scène sont détruits et recréés par `ScenePlateau::rafraichir()`.
   Tout pointeur gardé vers un `ItemCarte` doit être oublié à ce moment : c'est ce
   que fait `vider()` pour `cartes_projetees`.

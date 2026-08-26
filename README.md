@@ -9,8 +9,9 @@ numéro sort produisent des revenus, et l'argent gagné sert à acheter de
 nouvelles cartes ou à construire des monuments. Le premier joueur à avoir
 construit tous les monuments requis par l'édition remporte la partie.
 
-![Le plateau pendant la phase des restaurants : le Café de Capucine s'allume et
-prélève une pièce sur le joueur qui a lancé les dés](docs/plateau.png)
+![La table vue d'au-dessus : la boutique étalée au centre, la ville du joueur
+courant au bord proche, les villes adverses en éventail sur le pourtour, et un
+monument soulevé avec sa bulle](docs/plateau.png)
 
 ## Sommaire
 
@@ -34,8 +35,8 @@ prélève une pièce sur le joueur qui a lancé les dés](docs/plateau.png)
 - Adversaires contrôlés par l'ordinateur, avec trois profils : agressif, défensif ou aléatoire
 - Boutique paramétrable : nombre de piles visibles limité, ou catalogue complet
 - Pioche mélangée à chaque partie et réapprovisionnement automatique de la boutique
-- Interface graphique Qt6 : un plateau unique où tout est visible en permanence — la boutique, les villes de tous les joueurs, leurs monuments et leur bourse
-- Le tour se déroule sous les yeux du joueur : chaque carte qui produit son effet s'allume chez ceux qu'elle concerne, s'affiche en grand et annonce ce qu'elle vient de faire
+- Interface graphique Qt6 : une table ronde vue d'au-dessus, sur laquelle les cartes sont posées à plat — la boutique au centre, les villes de tous les joueurs sur le pourtour, les dés lancés devant soi
+- Le tour se déroule sous les yeux du joueur : chaque carte qui produit son effet se soulève du tapis chez ceux qu'elle concerne, se redresse face à la caméra et annonce ce qu'elle vient de faire
 
 ## Déroulement d'un tour
 
@@ -54,29 +55,39 @@ de droite, et les pièces traversent le plateau du payeur vers le bénéficiaire
 
 ## L'interface
 
-Tout tient sur un seul écran, sans navigation ni fenêtre à ouvrir :
+Il n'y a pas de tableau de bord : il y a **une table**, ronde, posée dans un
+paysage et filmée d'au-dessus. Les cartes y sont couchées à plat, et ce qui est
+loin est plus petit et plus écrasé que ce qui est près — c'est une vraie
+projection, pas un dégradé de tailles.
 
-| Zone | Contenu |
+| Où | Quoi |
 |---|---|
-| **En haut** | Le rail des cinq temps du tour, et le profil de la partie |
-| **Bande supérieure** | Une ville par adversaire : avatar, bourse, monuments, établissements rangés par numéro d'activation |
-| **Au centre, sur le tapis** | La boutique — de 9 à 39 piles, la taille des cartes s'adapte — les dés et la pioche |
-| **Bande inférieure** | La ville complète du joueur dont c'est le tour : ses huit monuments et tous ses établissements, à taille lisible |
-| **À droite** | Le journal du tour, et le panneau qui montre en grand la carte survolée, choisie, ou en train de produire son effet |
+| Au centre de la table | La boutique, de 9 à 39 piles étalées en rangées ; la taille des cartes s'adapte |
+| Au bord proche | La ville complète du joueur dont c'est le tour, ses dés lancés devant lui et la pioche à portée de main |
+| Sur le pourtour | Les villes des adversaires, en éventail, chacune devant sa plaque |
+| Hors du tapis | Le rail des cinq temps du tour, le profil de la partie, le journal, et la plaque de chaque joueur — avatar, bourse, monuments |
 
-Survoler n'importe quelle carte du plateau — y compris chez un adversaire — la
-redresse, l'agrandit et l'affiche en entier dans le panneau de droite : ses
-numéros d'activation, son prix, sa famille et son texte. Les couleurs seules ne
+Survoler n'importe quelle carte de la table — y compris chez un adversaire — la
+**soulève du tapis** : elle se redresse face à la caméra, rejoint une taille de
+lecture identique quelle que soit sa place, et une bulle apparaît à côté d'elle
+avec ses numéros d'activation, son prix, sa famille et son texte. C'est ce qui
+rend la perspective jouable, et c'est aussi ce que fait une carte qui produit son
+effet pendant la résolution.
+
+La ville concernée par l'étape en cours se **déplie** — ses cartes avancent sur
+la table et grandissent. Un clic sur la plaque d'un joueur épingle sa ville
+ouverte, pour l'examiner pendant que le tour continue : les couleurs seules ne
 suffisent pas à décider, et le détail d'une ville adverse est souvent ce qui
 oriente un achat.
 
 Construire se fait en deux gestes : cliquer la carte, puis le bouton
-**Construire**. Un établissement hors de portée reste visible mais voilé ; un
-établissement fermé est couché à 90 degrés, comme le prescrit le livret, et
-continue de compter pour les cartes qui dénombrent.
+**Construire** de sa bulle. Une carte qu'on ne peut pas bâtir dit pourquoi. Un
+établissement hors de portée reste visible mais voilé ; un établissement fermé
+est couché à 90 degrés, comme le prescrit le livret, et continue de compter pour
+les cartes qui dénombrent.
 
-![Le Chalutier s'active sur un 12 : le socle des dés annonce le bonus du Port qui
-a porté le total de 10 à 12](docs/tour.png)
+![Un autre moment de la partie : les dés lancés devant soi, la pioche à portée de
+main, et le rail des étapes du tour](docs/tour.png)
 
 ![Les deux menus de réglage](docs/menus.png)
 
@@ -208,6 +219,7 @@ controleur/      Moteur de jeu et vues associées
   VueInfo.*        Journal de la partie
 joueur/          Joueur.* — l'état d'un joueur
 vue/             Le plateau
+  Perspective.*    La table et la caméra : toute la géométrie
   ScenePlateau.*   Mise en page et déroulement visuel du tour
   VuePlateau.*     La QGraphicsView qui l'affiche
   ItemCarte.*      Une carte posée : survol, mise en lumière, voile, jetons

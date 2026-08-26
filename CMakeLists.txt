@@ -173,6 +173,8 @@ set(MACHI_KORO_SOURCES
         vue/ItemBouton.h
         vue/ItemCarte.cpp
         vue/ItemCarte.h
+        vue/Perspective.cpp
+        vue/Perspective.h
         vue/ScenePlateau.cpp
         vue/ScenePlateau.h
         vue/StyleJeu.cpp

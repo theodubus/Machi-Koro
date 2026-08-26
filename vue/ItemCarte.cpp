@@ -1,13 +1,16 @@
 #include "ItemCarte.h"
 #include "Decor.h"
+#include "Perspective.h"
 #include "Carte.h"
 #include "Batiment.h"
 #include "Monument.h"
 
 #include <QPainter>
 #include <QPropertyAnimation>
+#include <QPolygonF>
 #include <QGraphicsSceneMouseEvent>
 #include <QHash>
+#include <algorithm>
 
 namespace {
     /// Les 39 visuels font 400x620 : les redimensionner a chaque repeint couterait
@@ -60,7 +63,6 @@ ItemCarte::ItemCarte(const Carte* carte, Role role, int largeur, QGraphicsItem* 
     image = image_carte(carte != nullptr ? carte->get_path_image() : std::string(), largeur);
     taille = image.size();
     ombre = ombre_pour(taille);
-    setTransformOriginPoint(taille.width() / 2.0, taille.height() / 2.0);
 }
 
 QRectF ItemCarte::boundingRect() const {
@@ -78,16 +80,64 @@ void ItemCarte::set_releve(qreal v) {
 
 void ItemCarte::set_halo(qreal v) { le_halo = v; update(); }
 
-void ItemCarte::set_pose(qreal degres) {
-    pose_degres = degres;
+void ItemCarte::poser(qreal u, qreal v) {
+    le_u = u;
+    le_v = v;
+    // Ce qui est devant passe devant : l'ordre d'empilement suit la profondeur.
+    setZValue(10 + 100 * v);
+    appliquer_pose();
+}
+
+void ItemCarte::poser_hors_table(const QPointF& coin) {
+    sur_table = false;
+    coin_fixe = coin;
     appliquer_pose();
 }
 
 void ItemCarte::appliquer_pose() {
-    // Redressee, la carte perd son inclinaison et grandit d'un cinquieme : c'est
-    // ce qui la rend lisible sans quitter le plateau.
-    setRotation(pose_degres * (1.0 - le_releve));
-    setScale(1.0 + 0.20 * le_releve);
+    /// La carte est **couchee dans le plan de la table** : elle n'est pas dressee
+    /// face a nous, elle repose sur le feutre, et la camera l'ecrase d'autant plus
+    /// qu'elle est loin. Soulevee, elle quitte le plan et se redresse.
+    ///
+    /// Largeur a laquelle une carte doit arriver pour se lire, quelle que soit
+    /// sa taille de repos. Une vignette de monument fait quinze pixels de large.
+    static const qreal LARGEUR_LISIBLE = 148;
+
+    if (!sur_table) {
+        // Epinglee a une plaque : elle grandit sur place, sans quitter son cadre.
+        const qreal e = 1.0 + (LARGEUR_LISIBLE / std::max(1, taille.width()) - 1.0) * le_releve;
+        QTransform t;
+        t.translate(coin_fixe.x() + taille.width() / 2.0,
+                    coin_fixe.y() + taille.height() / 2.0);
+        t.scale(e, e);
+        t.translate(-taille.width() / 2.0, -taille.height() / 2.0);
+        setTransform(t);
+        return;
+    }
+
+    // Posee : la carte occupe un quadrilatere du plan de la table, que la camera
+    // deforme. C'est une vraie projection, pas une carte dressee qu'on aurait
+    // retrecie : le bord du fond est plus court que le bord proche.
+    const QPolygonF pose = Perspective::quad_carte(le_u, le_v, taille.width());
+
+    QPolygonF cible = pose;
+    if (le_releve > 0.001) {
+        // Soulevee, elle quitte le plan : elle se redresse face a nous et rejoint
+        // une taille de lecture identique ou qu'elle se trouve sur la table.
+        const QPointF centre = (pose[0] + pose[1] + pose[2] + pose[3]) / 4.0;
+        const qreal l = LARGEUR_LISIBLE, h = l * 1.55;
+        const QPointF hg(centre.x() - l / 2, centre.y() - h * 0.66);
+        QPolygonF droit;
+        droit << hg << hg + QPointF(l, 0) << hg + QPointF(l, h) << hg + QPointF(0, h);
+        for (int i = 0; i < 4; i++)
+            cible[i] = pose[i] * (1.0 - le_releve) + droit[i] * le_releve;
+    }
+
+    QPolygonF source;
+    source << QPointF(0, 0) << QPointF(taille.width(), 0)
+           << QPointF(taille.width(), taille.height()) << QPointF(0, taille.height());
+    QTransform t;
+    if (QTransform::quadToQuad(source, cible, t)) setTransform(t);
 }
 
 void ItemCarte::set_en_retrait(bool r) {
@@ -132,9 +182,9 @@ void ItemCarte::projeter(bool actif, int duree_ms) {
 }
 
 void ItemCarte::hoverEnterEvent(QGraphicsSceneHoverEvent*) {
-    // Redressee, la carte grandit d'un cinquieme et deborde sur ses voisines : il
-    // faut donc la passer devant, sans quoi elle passe *dessous* la suivante de la
-    // rangee et devient encore moins lisible qu'a plat.
+    // Soulevee, la carte deborde largement sur ses voisines : il faut donc la
+    // passer devant, sans quoi elle passe *dessous* celles du premier rang et
+    // devient encore moins lisible qu'a plat.
     z_repos = zValue();
     setZValue(600);
     animer_vers(1.0, 130);

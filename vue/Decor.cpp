@@ -151,29 +151,29 @@ namespace Decor {
         QPainter p(&caches().tapis);
         p.setRenderHint(QPainter::Antialiasing);
 
-        // Un tapis rectangulaire aux coins largement arrondis, et non une ellipse.
-        // La boutique est une grille : sur un ovale, les cartes des extremites de
-        // la derniere rangee tombaient a cote du tapis.
-        const QRectF mat(3, 3, t.width() - 6, t.height() - 12);
-        const qreal rayon = qMin(mat.width(), mat.height()) * 0.10;
+        // Une ellipse, et non un rectangle : c'est une table vue de trois quarts,
+        // pas un tapis de souris. Les cartes sont posees dessus en perspective,
+        // et le bord proche sort du cadre — comme une vraie table devant soi.
+        const QRectF ovale(t.width() * 0.035, t.height() * 0.055,
+                           t.width() * 0.930, t.height() * 1.02);
 
-        // Une ombre dessous, pour qu'il repose sur le decor.
+        // Une ombre dessous, pour qu'elle repose sur le decor.
         p.setPen(Qt::NoPen);
-        p.setBrush(QColor(20, 60, 45, 60));
-        p.drawRoundedRect(mat.adjusted(4, 9, -4, 9), rayon, rayon);
+        p.setBrush(QColor(20, 60, 45, 55));
+        p.drawEllipse(ovale.adjusted(-6, 10, 6, 10));
 
-        QLinearGradient feutre(mat.topLeft(), mat.bottomRight());
-        feutre.setColorAt(0.0, Palette::tapis_centre().lighter(105));
-        feutre.setColorAt(0.6, Palette::tapis_centre());
+        QRadialGradient feutre(ovale.center(), ovale.width() * 0.62);
+        feutre.setColorAt(0.0, Palette::tapis_centre());
         feutre.setColorAt(1.0, Palette::tapis_bord());
         p.setBrush(feutre);
-        p.setPen(QPen(Palette::tapis_lisere(), 5));
-        p.drawRoundedRect(mat, rayon, rayon);
+        p.setPen(QPen(Palette::tapis_lisere(), qMax(4.0, t.height() * 0.007)));
+        p.drawEllipse(ovale);
 
-        // Une couture claire en retrait du bord, comme sur un tapis de jeu.
+        // Un lisere interieur plus clair, comme une couture.
         p.setBrush(Qt::NoBrush);
-        p.setPen(QPen(QColor(255, 255, 255, 52), 2, Qt::DashLine));
-        p.drawRoundedRect(mat.adjusted(12, 12, -12, -12), rayon * 0.8, rayon * 0.8);
+        p.setPen(QPen(QColor(255, 255, 255, 46), 2, Qt::DashLine));
+        p.drawEllipse(ovale.adjusted(ovale.width() * 0.028, ovale.height() * 0.028,
+                                     -ovale.width() * 0.028, -ovale.height() * 0.028));
         return caches().tapis;
     }
 

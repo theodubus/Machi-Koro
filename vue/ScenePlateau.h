@@ -4,6 +4,8 @@
 #include <QGraphicsScene>
 #include <QList>
 #include <QStringList>
+#include <QMap>
+#include <QPointF>
 #include <string>
 #include <vector>
 
@@ -24,21 +26,28 @@ class QGraphicsPathItem;
 /// fenetre — d'ou venait la moitie des defauts d'affichage de l'ancienne
 /// interface, ou chaque widget portait sa taille fixe en pixels.
 ///
-/// Cinq zones, toujours au meme endroit :
+/// Tout se passe **sur une table ovale**, vue de trois quarts, posee dans un
+/// paysage. Il n'y a pas de tableau de bord : la boutique est etalee au centre
+/// de la table, les villes des joueurs sur son pourtour, le de au milieu. Ce qui
+/// est loin est plus petit et plus haut — voir Perspective, qui porte toute la
+/// geometrie.
 ///
-///     +--------------------------------------------------+-----------+
-///     | rail des phases du tour                          | entete    |
-///     +--------------------------------------------------+-----------+
-///     | villes des adversaires                           |           |
-///     +--------------------------------------------------+ journal   |
-///     | boutique, posee sur le tapis          [ des ]    |           |
-///     +--------------------------------------------------+-----------+
-///     | ville du joueur dont c'est le tour               | carte mise |
-///     |                                                  | en avant   |
-///     +--------------------------------------------------+-----------+
+///        ciel, montagnes, silhouette de ville
+///     +----------------------------------------------+
+///     | rail des phases                     entete   |
+///     |          ___-------------------___           |
+///     |     [adv]      villes du fond      [adv]     |
+///     |    /            [ les des ]            \     |
+///     |   |     boutique etalee sur le tapis    |    |
+///     |    \                                   /     |
+///     |     ------  ma ville, au bord proche ------   |
+///     | journal                            boutons   |
+///     +----------------------------------------------+
 ///
-/// Le joueur dont c'est le tour occupe toute la bande du bas, avec sa ville
-/// entiere et ses monuments : c'est lui qui doit decider, il doit tout voir.
+/// La ville concernee par l'etape en cours se **deplie** : ses cartes avancent
+/// et grandissent. Celle qui produit son effet se souleve du tapis, se redresse
+/// face camera et s'entoure d'un halo. Un clic sur un joueur epingle sa ville
+/// depliee, pour l'examiner pendant que le tour continue.
 class ScenePlateau : public QGraphicsScene {
     Q_OBJECT
 public:
@@ -80,11 +89,18 @@ public:
     /// Ouvre ou ferme la possibilite de construire.
     void set_moment_achat(bool actif);
 
+    /// Epingle la ville d'un joueur en position depliee, ou la relache.
+    void basculer_epingle(unsigned int joueur);
+
 signals:
     /// Le joueur confirme l'achat de cette carte.
     void achat_demande(const Carte*);
     /// Le joueur a choisi de ne rien construire.
     void rien_faire();
+
+protected:
+    /// Un clic sur la plaque d'un joueur epingle sa ville ouverte.
+    void mousePressEvent(QGraphicsSceneMouseEvent* e) override;
 
 private slots:
     void carte_cliquee(ItemCarte*);
@@ -103,18 +119,35 @@ private:
     void poser_ville_active();
     void poser_des();
 
-    /// Range les cartes d'une ville dans un rectangle donne, du plus petit au
-    /// plus grand numero d'activation, en adaptant leur taille au nombre a poser.
-    /// Rend la hauteur reellement occupee.
-    qreal poser_cartes(const QRectF& zone, unsigned int indice_joueur,
-                       QList<QGraphicsItem*>& sortie, int largeur_max);
+    /// Ou s'installe un joueur autour de la table : le centre de sa ville, et
+    /// le cote du tapis vers lequel sa plaque deborde.
+    struct Place { qreal u; qreal v; int colonnes; QPointF plaque; };
+    Place place_de(unsigned int rang, unsigned int nb_adversaires) const;
+
+    /// Etale les cartes d'une ville sur la table, autour de (u, v), rangees par
+    /// numero d'activation. `largeur` est la largeur d'une carte au bord proche ;
+    /// `rangees_max` borne l'empilement en profondeur, le reste se chevauchant en
+    /// eventail.
+    void poser_cartes(unsigned int indice_joueur, qreal u_centre, qreal v,
+                      int largeur, int rangees_max, qreal bande,
+                      QList<QGraphicsItem*>& sortie);
+
+    /// La plaque d'un joueur — avatar, nom, bourse, monuments — posee au bord du
+    /// tapis, hors de la table.
+    void poser_plaque(unsigned int joueur, const Place& p, bool actif,
+                      QList<QGraphicsItem*>& sortie);
+
+    /// Vrai si la ville de ce joueur doit etre depliee : l'etape en cours la
+    /// concerne, ou le joueur l'a epinglee.
+    bool ville_depliee(unsigned int joueur) const;
 
     /// Affiche une carte en grand dans le panneau de droite.
     void mettre_en_avant(const Carte* carte, const QString& explication,
                          bool proposer_achat);
-    /// Rend le panneau de droite a la carte selectionnee, ou a son message
-    /// d'attente s'il n'y en a aucune.
+    /// Rend la bulle a la carte selectionnee, ou l'efface s'il n'y en a aucune.
     void rendre_panneau();
+    /// Cale la bulle a cote de cette carte.
+    void viser_bulle(const ItemCarte* item);
     /// Numeros d'activation, prix et texte de la carte, mis en forme.
     QString decrire(const Carte* carte) const;
     /// Vrai si le joueur courant peut construire cette carte maintenant.
@@ -143,8 +176,12 @@ private:
     QGraphicsTextItem* texte_journal = nullptr;
     QStringList lignes_journal;
 
+    /// Largeur de la bulle qui explique la carte mise en avant.
+    static constexpr int LARGEUR_BULLE = 330;
+
     ItemBouton* bouton_rien = nullptr;
     ItemBouton* bouton_acheter = nullptr;
+    QGraphicsPathItem* bulle = nullptr;
     QGraphicsTextItem* texte_avant = nullptr;
     QGraphicsSimpleTextItem* titre_avant = nullptr;
 
@@ -152,9 +189,19 @@ private:
     const Carte* carte_selectionnee = nullptr;
     /// Les cartes actuellement allumees par le projecteur.
     QList<ItemCarte*> cartes_projetees;
+    /// Les zones cliquables des plaques de joueur, porteuses de leur indice.
+    QList<QGraphicsItem*> plaques;
+    /// Ou se trouve la plaque de chaque joueur : les pieces y voyagent.
+    QMap<unsigned int, QPointF> ancres_joueurs;
+    /// Le point dont la bulle doit se tenir a cote : la carte mise en avant.
+    QPointF ancre_bulle{800, 500};
+    /// La carte que la bulle commente, pour la retrouver apres un projecteur.
+    const ItemCarte* carte_visee = nullptr;
 
     Phase la_phase = Phase::Attente;
     bool moment_achat = false;
+    /// Villes que le joueur a epinglees ouvertes.
+    QList<unsigned int> epinglees;
 };
 
 #endif //MACHI_KORO_SCENEPLATEAU_H

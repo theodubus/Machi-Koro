@@ -28,5 +28,5 @@ void Stade::declencher_effet(const ContexteDeclenchement& ctx) const{
             Partie::get_instance()->transfert_argent(i, ctx.possesseur, 2);
         }
     }
-    partie->get_vue_partie()->get_vue_infos()->add_info(j_actuel->get_nom() + " possede maintenant " + std::to_string(j_actuel->get_argent()) + " credits.");
+    partie->get_vue_partie()->get_vue_infos()->add_info(j_actuel->get_nom() + " possede maintenant " + std::to_string(j_actuel->get_argent()) + " piece(s).");
 }
