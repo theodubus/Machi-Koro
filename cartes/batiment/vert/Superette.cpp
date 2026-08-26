@@ -16,7 +16,7 @@ void Superette::declencher_effet(const ContexteDeclenchement& ctx) const{
     Partie * partie = Partie::get_instance();
     Joueur* j_actuel = partie->get_tab_joueurs()[index_possesseur];
 
-    partie->get_vue_partie()->get_vue_infos()->add_info("Activation de l'effet de la carte Superette du joueur \""+ j_actuel->get_nom() + "\"");
+    partie->get_vue_partie()->get_vue_infos()->add_info("Activation de " + get_nom_affiche() + " chez " + j_actuel->get_nom());
 
     // On donne 3 pieces
     unsigned int argent = j_actuel->get_argent();

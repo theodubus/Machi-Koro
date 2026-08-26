@@ -3,6 +3,13 @@
 #include <QTime>
 #include <QTimer>
 #include "Partie.h"
+
+// selectionner_joueur() construit une fenetre de choix. Ces en-tetes venaient
+// jusqu'ici du <QtGui> global de l'ancienne VuePartie.h.
+#include <QDialog>
+#include <QLabel>
+#include <QPushButton>
+#include <QVBoxLayout>
 #include "VuePartie.h"
 
 Partie::Handler Partie::handler=Partie::Handler();
@@ -45,7 +52,7 @@ Partie* Partie::get_instance() {
     return handler.instance;
 }
 
-Partie::Partie(EditionDeJeu* edition, const map<string, string>& joueurs, const string& shop_type, unsigned int shop_size, const vector<EditionDeJeu *>& extensions) : joueur_actuel(0), nb_monuments_win(edition->get_nb_monuments_win()), de_1(0), de_2(0), bonus_des(0), de_chalutier(0), compteur_tour(0) {
+Partie::Partie(EditionDeJeu* edition, const map<string, string>& joueurs, const string& shop_type, unsigned int shop_size, const vector<EditionDeJeu *>& extensions) : joueur_actuel(0), nb_monuments_win(edition->get_nb_monuments_win()), de_1(0), de_2(0), bonus_des(0), de_chalutier(0), compteur_tour(0), phase_courante(ScenePlateau::Phase::Attente) {
     ///Constructeur de Partie
 
     //Initialisation des variables utiles
@@ -271,7 +278,7 @@ bool Partie::acheter_monu_ia() {
     joueur_act->activer_monument(mon_picked);
     joueur_act->set_argent(joueur_act->get_argent() - mon_picked->get_prix());
 
-    vue_partie->get_vue_infos()->add_info("Le joueur \"" + tab_joueurs[joueur_actuel]->get_nom() + "\" a active le monument " + mon_picked->get_nom() + "\n\n");
+    vue_partie->get_vue_infos()->add_info("Le joueur \"" + tab_joueurs[joueur_actuel]->get_nom() + "\" a active le monument " + mon_picked->get_nom_affiche() + "\n\n");
     return true;
 }
 
@@ -330,23 +337,25 @@ bool Partie::acheter_bat_ia() {
     joueur_act->set_argent(joueur_act->get_argent() - bat_picked->get_prix());
     bat_picked->a_l_achat(joueur_actuel);
 
-    vue_partie->get_vue_infos()->add_info("Le joueur \"" + tab_joueurs[joueur_actuel]->get_nom() + "\" à acheté la carte " + bat_picked->get_nom() + "\n\n");
+    vue_partie->get_vue_infos()->add_info("Le joueur \"" + tab_joueurs[joueur_actuel]->get_nom() + "\" a construit " + bat_picked->get_nom_affiche() + "\n\n");
     return true;
 }
 
 
-bool Partie::acheter_carte(VueCarte *vue_carte) {
+bool Partie::acheter_carte(const Carte* carte) {
     ///Fonction qui permet a un joueur d'acheter une carte (batiment ou monument)
-
-    if(!vue_carte->getCarte()->est_monument()) {
-        return acheter_bat(vue_carte);
+    if (carte == nullptr) {
+        return false;
+    }
+    if(!carte->est_monument()) {
+        return acheter_bat(carte);
     }
     else {
-        return acheter_monu(vue_carte);
+        return acheter_monu(carte);
     }
 }
 
-bool Partie::acheter_monu(VueCarte* vue_carte) {
+bool Partie::acheter_monu(const Carte* carte) {
     //fonction qui permet a un joueur donne d'acheter un monument
     Monument* mon_picked = nullptr;
     Joueur *joueur_act = tab_joueurs[joueur_actuel];
@@ -354,7 +363,7 @@ bool Partie::acheter_monu(VueCarte* vue_carte) {
 
     if (!tab_joueurs[joueur_actuel]->get_est_ia()) {
         for (auto mon_act: joueur_act->get_liste_monument()) {
-            if (!mon_act.second && mon_act.first->get_nom() == vue_carte->getCarte()->get_nom()) {
+            if (!mon_act.second && mon_act.first->get_nom() == carte->get_nom()) {
                 mon_picked = mon_act.first;
             }
         }
@@ -385,11 +394,11 @@ bool Partie::acheter_monu(VueCarte* vue_carte) {
         joueur_act->set_argent(joueur_act->get_argent() - mon_picked->get_prix());
     }
 
-    vue_partie->get_vue_infos()->add_info("Le joueur \"" + tab_joueurs[joueur_actuel]->get_nom() + "\" a active le monument " + mon_picked->get_nom() + "\n\n");
+    vue_partie->get_vue_infos()->add_info("Le joueur \"" + tab_joueurs[joueur_actuel]->get_nom() + "\" a active le monument " + mon_picked->get_nom_affiche() + "\n\n");
     return true;
 }
 
-bool Partie::acheter_bat(VueCarte* vue_carte) {
+bool Partie::acheter_bat(const Carte* carte) {
     //fonction qui permet a un joueur donne d'acheter un batiment
     Batiment* bat_picked = nullptr;
     Joueur *joueur_act = tab_joueurs[joueur_actuel];
@@ -397,7 +406,7 @@ bool Partie::acheter_bat(VueCarte* vue_carte) {
 
     // Recherche de la carte cliquee dans le shop
     for(auto& bat : bat_shop){
-        if(bat->get_nom() == vue_carte->getCarte()->get_nom()){
+        if(bat->get_nom() == carte->get_nom()){
             bat_picked = bat;
         }
     }
@@ -426,7 +435,7 @@ bool Partie::acheter_bat(VueCarte* vue_carte) {
     joueur_act->set_argent(joueur_act->get_argent() - bat_picked->get_prix());
     bat_picked->a_l_achat(joueur_actuel);
 
-    vue_partie->get_vue_infos()->add_info("Le joueur \"" + tab_joueurs[joueur_actuel]->get_nom() + "\" a achete la carte " + bat_picked->get_nom() + "\n\n");
+    vue_partie->get_vue_infos()->add_info("Le joueur \"" + tab_joueurs[joueur_actuel]->get_nom() + "\" a construit " + bat_picked->get_nom_affiche() + "\n\n");
 
     return true;
 }
@@ -484,8 +493,9 @@ bool Partie::transfert_argent(unsigned int indice_joueur1, unsigned int indice_j
 void Partie::jouer_partie() {
     /// Fonction pour jouer une partie
     // Création de la vue
-    QWidget *fenetre = new QWidget;
-    vue_partie = new VuePartie(fenetre);
+    // Pas de QWidget racine : VuePartie est deja la fenetre de plus haut niveau,
+    // et le widget qu'on lui donnait pour parent n'etait ni utilise ni libere.
+    vue_partie = new VuePartie();
     vue_partie->setWindowState(Qt::WindowMaximized);
     vue_partie->show();
 
@@ -504,13 +514,168 @@ bool Partie::activer_monument(const vector<Monument*>& monuments, const string& 
     if (it == monuments.end()) {
         return false;
     }
-    try {
-        (*it)->declencher_effet({joueur_actuel, joueur_actuel});
-    }
-    catch (exception const& e) {
-        cerr << "ERREUR : " << e.what() << endl;
-    }
+    declencher(*it, {joueur_actuel}, {joueur_actuel, joueur_actuel});
     return true;
+}
+
+// ------------------------------------------------------------------- le rejeu
+
+/// Duree pendant laquelle une carte reste allumee au rejeu. Assez longue pour
+/// qu'on lise ce qu'elle fait, assez courte pour ne pas peser sur un tour d'IA.
+static const int DELAI_EFFET = 620;
+/// Duree d'un simple changement d'etape, quand aucune carte ne se declenche.
+static const int DELAI_ETAPE = 260;
+
+void Partie::declencher(const Carte* carte, const vector<unsigned int>& possesseurs,
+                        const ContexteDeclenchement& ctx, unsigned int fois) {
+    if (carte == nullptr || fois == 0) {
+        return;
+    }
+    // On photographie les bourses avant et apres : c'est de la difference que se
+    // deduisent les pieces qui traversent le plateau au rejeu. Aucune des
+    // quarante-sept cartes n'a eu a etre modifiee pour cela.
+    vector<unsigned int> avant;
+    avant.reserve(tab_joueurs.size());
+    for (const Joueur* j : tab_joueurs) avant.push_back(j->get_argent());
+
+    for (unsigned int n = 0; n < fois; n++) {
+        try {
+            carte->declencher_effet(ctx);
+        }
+        catch (exception const& e) {
+            cerr << "ERREUR : " << e.what() << endl;
+        }
+    }
+
+    vector<int> deltas;
+    deltas.reserve(tab_joueurs.size());
+    for (size_t i = 0; i < tab_joueurs.size(); i++)
+        deltas.push_back((int) tab_joueurs[i]->get_argent() - (int) avant[i]);
+
+    // Une meme carte qui se declenche chez plusieurs joueurs d'affilee — un Champ
+    // de ble sur le 1, que tout le monde possede — ne fait qu'un temps de rejeu :
+    // elle s'allume chez tous a la fois. Les montrer un par un allongeait le tour
+    // sans rien apprendre.
+    if (!effets_du_tour.empty() && effets_du_tour.back().carte == carte &&
+        effets_du_tour.back().phase == phase_courante) {
+        Declenchement& d = effets_du_tour.back();
+        for (unsigned int p : possesseurs) d.possesseurs.push_back(p);
+        for (size_t i = 0; i < deltas.size() && i < d.deltas.size(); i++)
+            d.deltas[i] += deltas[i];
+        d.resume = resumer(d.deltas);
+        return;
+    }
+
+    Declenchement d{carte, possesseurs, deltas, phase_courante, resumer(deltas)};
+    effets_du_tour.push_back(d);
+}
+
+void Partie::marquer_etape(ScenePlateau::Phase p) {
+    phase_courante = p;
+    effets_du_tour.push_back({nullptr, {}, {}, p, ""});
+}
+
+string Partie::resumer(const vector<int>& deltas) const {
+    vector<size_t> gagnants, perdants;
+    for (size_t i = 0; i < deltas.size(); i++) {
+        if (deltas[i] > 0) gagnants.push_back(i);
+        else if (deltas[i] < 0) perdants.push_back(i);
+    }
+    // Certaines cartes ne deplacent pas d'argent : l'Entreprise de demenagement
+    // echange un batiment, l'Entreprise de renovation en ferme. Leur propre texte
+    // reste affiche sous la carte, il n'y a rien a resumer.
+    if (gagnants.empty() && perdants.empty()) return "";
+
+    auto nom = [&](size_t i) { return tab_joueurs[i]->get_nom(); };
+    auto pieces = [](int n) {
+        return to_string(n) + (n > 1 ? " pièces" : " pièce");
+    };
+
+    if (perdants.empty()) {
+        string t;
+        for (size_t g : gagnants)
+            t += (t.empty() ? "" : ", ") + nom(g) + " reçoit " + pieces(deltas[g]);
+        return t + " de la banque.";
+    }
+    if (gagnants.size() == 1) {
+        string qui;
+        for (size_t p : perdants) qui += (qui.empty() ? "" : " et ") + nom(p);
+        return nom(gagnants[0]) + " prend " + pieces(deltas[gagnants[0]]) + " à " + qui + ".";
+    }
+    // Cas restants : une redistribution generale, comme l'Arboretum ou le Stade.
+    string t;
+    for (size_t i = 0; i < deltas.size(); i++) {
+        if (deltas[i] == 0) continue;
+        t += (t.empty() ? "" : "   ") + nom(i) +
+             (deltas[i] > 0 ? " +" : " ") + to_string(deltas[i]);
+    }
+    return t;
+}
+
+void Partie::rejouer_effets(size_t i) {
+    if (vue_partie == nullptr) return;
+
+    if (i >= effets_du_tour.size()) {
+        vue_partie->eteindre_projecteur();
+        phase_achat();
+        return;
+    }
+
+    const Declenchement& d = effets_du_tour[i];
+    vue_partie->set_phase(d.phase);
+
+    if (d.carte == nullptr) {
+        // Changement d'etape. Si une carte se declenche dans la foulee, on
+        // enchaine aussitot : la pause ne sert qu'a montrer qu'une etape n'a rien
+        // produit. La carte de l'etape precedente s'eteint dans tous les cas,
+        // sans quoi elle resterait allumee sous une etape qui n'est pas la sienne.
+        const bool suite_immediate = (i + 1 < effets_du_tour.size() &&
+                                      effets_du_tour[i + 1].phase == d.phase);
+        if (!suite_immediate) vue_partie->eteindre_projecteur();
+        QTimer::singleShot(suite_immediate ? 1 : DELAI_ETAPE,
+                           [i]() { Partie::get_instance()->rejouer_effets(i + 1); });
+        return;
+    }
+
+    vue_partie->projeter(d.carte, d.possesseurs, QString::fromStdString(d.resume));
+    vue_partie->update_des();
+    animer_transferts(d);
+
+    QTimer::singleShot(DELAI_EFFET, [i]() { Partie::get_instance()->rejouer_effets(i + 1); });
+}
+
+void Partie::animer_transferts(const Declenchement& d) {
+    // Chaque payeur alimente le gagnant le plus important, et un gain sans payeur
+    // vient de la banque (source -1). On ne connait des cartes que la variation
+    // des bourses : cet appariement est la lecture la plus simple qui rende
+    // exactement les totaux.
+    vector<pair<int,int>> gains, pertes;
+    for (size_t k = 0; k < d.deltas.size(); k++) {
+        if (d.deltas[k] > 0) gains.emplace_back((int) k, d.deltas[k]);
+        else if (d.deltas[k] < 0) pertes.emplace_back((int) k, -d.deltas[k]);
+    }
+    for (auto& g : gains) {
+        int reste = g.second;
+        for (auto& p : pertes) {
+            if (reste <= 0 || p.second <= 0) continue;
+            const int part = min(reste, p.second);
+            vue_partie->animer_piece(p.first, g.first, part);
+            reste -= part;
+            p.second -= part;
+        }
+        if (reste > 0) vue_partie->animer_piece(-1, g.first, reste);
+    }
+    for (auto& p : pertes)
+        if (p.second > 0) vue_partie->animer_piece(p.first, -1, p.second);
+}
+
+void Partie::montrer_dernier_effet(size_t depuis) {
+    if (vue_partie == nullptr || effets_du_tour.size() <= depuis) return;
+    const Declenchement& d = effets_du_tour.back();
+    if (d.carte == nullptr) return;
+    vue_partie->set_phase(d.phase);
+    vue_partie->projeter(d.carte, d.possesseurs, QString::fromStdString(d.resume));
+    animer_transferts(d);
 }
 
 
@@ -529,6 +694,11 @@ void Partie::jouer_tour() {
 
     /// On update toute la vue
     vue_partie->update_vue_partie();
+
+    /// Le journal des effets du tour precedent est rejoue, on repart a vide.
+    effets_du_tour.clear();
+    phase_courante = ScenePlateau::Phase::Des;
+    vue_partie->set_phase(ScenePlateau::Phase::Des);
 
     /// Lancer des des
     de_1 = Partie::lancer_de();
@@ -587,6 +757,7 @@ void Partie::jouer_tour() {
 
     /// Rouge
     unsigned int j_act_paiement = (joueur_actuel + tab_joueurs.size() - 1) % tab_joueurs.size();
+    marquer_etape(ScenePlateau::Phase::Rouge);
     vue_partie->get_vue_infos()->add_info("Effet des batiments rouges");
 
     while (j_act_paiement != joueur_actuel) {
@@ -605,14 +776,8 @@ void Partie::jouer_tour() {
             if (find(it.first->get_num_activation().begin(), it.first->get_num_activation().end(), get_total_des()) !=
                 it.first->get_num_activation().end()) {
                 int bonus = (centre_c_possesseur && it.first->beneficie_centre_commercial()) ? 1 : 0;
-                for (unsigned int effectif = 0; effectif < it.second; effectif++) {
-                    try {
-                        it.first->declencher_effet({j_act_paiement, joueur_actuel, bonus});
-                    }
-                    catch (exception const &e) {
-                        cerr << "ERREUR : " << e.what() << endl;
-                    }
-                }
+                declencher(it.first, {j_act_paiement},
+                           {j_act_paiement, joueur_actuel, bonus}, it.second);
             }
         }
 
@@ -620,53 +785,36 @@ void Partie::jouer_tour() {
     }
 
     /// Bleu
+    marquer_etape(ScenePlateau::Phase::Bleu);
     vue_partie->get_vue_infos()->add_info("Effet des batiments bleus");
     for (unsigned int i = 0; i < tab_joueurs.size(); i++) {
         for (auto it: tab_joueurs[i]->get_liste_batiment(Bleu)) {
             if (find(it.first->get_num_activation().begin(), it.first->get_num_activation().end(), get_total_des()) !=
                 it.first->get_num_activation().end()) {
-                for (unsigned int effectif = 0; effectif < it.second; effectif++) {
-                    try {
-                        it.first->declencher_effet({i, joueur_actuel});
-                    }
-                    catch (exception const &e) {
-                        cerr << "ERREUR : " << e.what() << endl;
-                    }
-                }
+                declencher(it.first, {i}, {i, joueur_actuel}, it.second);
             }
         }
     }
 
     /// Vert
+    marquer_etape(ScenePlateau::Phase::Vert);
     vue_partie->get_vue_infos()->add_info("Effet des batiments verts");
     for (auto it: tab_joueurs[joueur_actuel]->get_liste_batiment(Vert)) {
         if (find(it.first->get_num_activation().begin(), it.first->get_num_activation().end(), get_total_des()) !=
             it.first->get_num_activation().end()) {
             int bonus = (centre_c_act && it.first->beneficie_centre_commercial()) ? 1 : 0;
-            for (unsigned int effectif = 0; effectif < it.second; effectif++) {
-                try {
-                    it.first->declencher_effet({joueur_actuel, joueur_actuel, bonus});
-                }
-                catch (exception const &e) {
-                    cerr << "ERREUR : " << e.what() << endl;
-                }
-            }
+            declencher(it.first, {joueur_actuel},
+                       {joueur_actuel, joueur_actuel, bonus}, it.second);
         }
     }
 
     /// Violet (resolu en dernier)
+    marquer_etape(ScenePlateau::Phase::Violet);
     vue_partie->get_vue_infos()->add_info("Effet des batiments violets");
     for (auto it: tab_joueurs[joueur_actuel]->get_liste_batiment(Violet)) {
         if (find(it.first->get_num_activation().begin(), it.first->get_num_activation().end(), get_total_des()) !=
             it.first->get_num_activation().end()) {
-            for (unsigned int effectif = 0; effectif < it.second; effectif++) {
-                try {
-                    it.first->declencher_effet({joueur_actuel, joueur_actuel});
-                }
-                catch (exception const &e) {
-                    cerr << "ERREUR : " << e.what() << endl;
-                }
-            }
+            declencher(it.first, {joueur_actuel}, {joueur_actuel, joueur_actuel}, it.second);
         }
     }
 
@@ -675,27 +823,40 @@ void Partie::jouer_tour() {
     /// ****************************************************************************************************************
 
     /// Hotel de ville
+    /// « Avant de construire un etablissement ou un monument... » : la carte se
+    /// declenche a l'entree de la phase de construction, pas avec les violets.
+    marquer_etape(ScenePlateau::Phase::Achat);
     activer_monument(monuments_joueurs, "HotelDeVille");
 
-    /// Achat
+    /// Tout est resolu : on le montre, carte par carte, avant de rendre la main.
+    rejouer_effets(0);
+}
+
+void Partie::phase_achat() {
+    if (vue_partie == nullptr) {
+        return;
+    }
+    phase_courante = ScenePlateau::Phase::Achat;
+    vue_partie->update_vue_joueur();
+    vue_partie->set_phase(ScenePlateau::Phase::Achat);
+
     if(!tab_joueurs[joueur_actuel]->get_est_ia()){
         moment_achat = true;
         vue_partie->set_bouton_rien_faire(true);
     }
 
-    vue_partie->update_vue_joueur();
     vue_partie->get_vue_infos()->add_info("Phase d'achat");
 
     if (tab_joueurs[joueur_actuel]->get_est_ia()) {
-        /// On laisse 2 secondes au joueur pour lire le tour de l'IA, puis on lance
-        /// sa phase d'achat. Passer par une minuterie plutot que par une boucle
-        /// d'attente active libere le processeur et, surtout, rend la main a la
-        /// boucle d'evenements : la pile d'appels se vide entre deux tours.
+        /// On laisse deux secondes au joueur pour lire le tour de l'IA, puis on
+        /// lance sa phase d'achat. Passer par une minuterie plutot que par une
+        /// boucle d'attente active libere le processeur et, surtout, rend la main
+        /// a la boucle d'evenements : la pile d'appels se vide entre deux tours.
         QTimer::singleShot(2000, []() { Partie::get_instance()->acheter_carte_ia(); });
     } else {
-        vue_partie->get_vue_infos()->add_info("Pour acheter une carte, cliquez dessus puis sur le bouton 'Acheter'");
-        vue_partie->get_vue_infos()->add_info("Pour passer votre tour, cliquez sur le bouton 'Ne rien faire' puis confirmez");
-        vue_partie->get_vue_infos()->add_info("C'est à vous de jouer !");
+        vue_partie->get_vue_infos()->add_info("Cliquez une carte pour la lire, puis sur « Construire »");
+        vue_partie->get_vue_infos()->add_info("Ou terminez votre tour avec « Ne rien construire »");
+        vue_partie->get_vue_infos()->add_info("C'est a vous de jouer !");
     }
 }
 
@@ -706,6 +867,8 @@ void Partie::suite_tour(bool achat_ok){
     /// ****************************************************************************************************************
     /// ****************************** ETAPE 1 : Affichage achat + effet ***********************************************
     /// ****************************************************************************************************************
+
+    const size_t effets_avant = effets_du_tour.size();
 
     if (!achat_ok) {
         vue_partie->get_vue_infos()->add_info("Vous n'avez rien acheté");
@@ -770,7 +933,14 @@ void Partie::suite_tour(bool achat_ok){
     vue_partie->update_des();
     vue_partie->update_vue_shop();
     vue_partie->update_vue_info();
+    vue_partie->set_phase(ScenePlateau::Phase::Attente);
     vue_partie->get_vue_infos()->add_info("Fin du tour");
+
+    // L'Aeroport et le Parc d'attractions se declenchent une fois le rejeu du
+    // tour termine : on les montre ici, apres le rafraichissement qui aurait
+    // efface leur mise en lumiere, et la seconde d'attente qui suit laisse le
+    // temps de les lire.
+    montrer_dernier_effet(effets_avant);
 
     /// On marque une seconde avant d'enchainer. Le passage par une minuterie evite
     /// que jouer_tour(), acheter_carte_ia() et suite_tour() ne s'appellent en
@@ -783,11 +953,6 @@ void Partie::terminer_tour() {
     // Les cartes qui posent un jeton « a la fin de votre tour » l'ont programme
     // pendant la phase de revenus : c'est ici qu'il se pose.
     tab_joueurs[joueur_actuel]->poser_jetons_en_attente();
-
-    if (vue_partie->get_vue_carte() != nullptr) {
-        vue_partie->get_vue_carte()->close();
-        vue_partie->set_vue_carte(nullptr);
-    }
 
     /// Vérifie si la partie est finie
     if (est_gagnant(joueur_actuel)) {
@@ -872,8 +1037,4 @@ unsigned int Partie::lancer_de() {
     std::mt19937 gen(rd());
     std::uniform_int_distribution<> dis(1, 6);
     return dis(gen);
-}
-
-bool Partie::acheter_carte_event(VueCarte* vc) {
-    return acheter_carte(vc);
 }

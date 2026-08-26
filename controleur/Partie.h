@@ -44,6 +44,45 @@ private:
     Shop* shop;
     Pioche* pioche;
 
+    /// Un declenchement de carte, tel qu'on veut le rejouer a l'ecran.
+    ///
+    /// Un tour se resout d'un bloc : les quatre boucles de couleurs s'enchainent
+    /// sans rendre la main, si bien que le joueur voyait le resultat sans jamais
+    /// voir *ce qui s'etait passe*. On note donc chaque declenchement au passage —
+    /// la carte, chez qui elle s'allume, ce que chacun a gagne ou perdu — et on le
+    /// rejoue ensuite carte par carte, avant la phase de construction.
+    ///
+    /// Une entree dont la carte vaut nullptr est un simple changement d'etape : le
+    /// rail avance meme quand une couleur ne declenche rien.
+    struct Declenchement {
+        const Carte* carte;
+        vector<unsigned int> possesseurs;   ///< chez qui la carte s'allume
+        vector<int> deltas;                 ///< variation de bourse, par joueur
+        ScenePlateau::Phase phase;
+        string resume;                      ///< ce que la carte vient de faire
+    };
+    vector<Declenchement> effets_du_tour;
+    ScenePlateau::Phase phase_courante;
+
+    /// Declenche une carte `fois` fois en notant son effet pour le rejeu.
+    void declencher(const Carte* carte, const vector<unsigned int>& possesseurs,
+                    const ContexteDeclenchement& ctx, unsigned int fois = 1);
+    /// Marque un changement d'etape dans le rejeu.
+    void marquer_etape(ScenePlateau::Phase p);
+    /// Rejoue le declenchement numero `i`, puis programme le suivant.
+    void rejouer_effets(size_t i);
+    /// Fait voyager les pieces d'un declenchement d'un joueur a l'autre.
+    void animer_transferts(const Declenchement& d);
+    /// Montre le dernier declenchement enregistre, si la liste a grossi depuis
+    /// `depuis`. Les deux monuments qui se declenchent apres la construction —
+    /// l'Aeroport et le Parc d'attractions — arrivent une fois le rejeu du tour
+    /// termine : sans cela, ils n'apparaitraient nulle part.
+    void montrer_dernier_effet(size_t depuis);
+    /// Ouvre la phase de construction. Appelee a la fin du rejeu.
+    void phase_achat();
+    /// Met en phrase ce qu'un declenchement a change dans les bourses.
+    string resumer(const vector<int>& deltas) const;
+
     struct Handler{
         Partie* instance;
         Handler() : instance(nullptr){}
@@ -132,15 +171,15 @@ public:
     // Rend vrai si la carte a effectivement ete achetee. L'appelant doit s'en
     // servir : un achat refuse laisse au joueur le benefice du « rien construit »
     // (effet de l'Aeroport).
-    bool acheter_carte(VueCarte* vue_carte);
-    bool acheter_monu(VueCarte* vc);//sous fonction appelee dans acheter_carte
-    bool acheter_bat(VueCarte* vc);//sous fonction appelee dans acheter_carte
+    // La carte, et non la vignette qui la representait : le controleur n'a jamais
+    // eu besoin que du modele, et il n'a plus a connaitre les types de la vue.
+    bool acheter_carte(const Carte* carte);
+    bool acheter_monu(const Carte* carte);//sous fonction appelee dans acheter_carte
+    bool acheter_bat(const Carte* carte);//sous fonction appelee dans acheter_carte
     bool transfert_argent(unsigned int indice_joueur1, unsigned int indice_joueur2, unsigned int somme);
     void rejouer_tour();
 
     vector<Batiment *> get_starter();
-
-    bool acheter_carte_event(VueCarte* vc);
 };
 
 #endif //MACHI_KORO_PARTIE_H

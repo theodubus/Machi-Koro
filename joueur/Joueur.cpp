@@ -251,7 +251,7 @@ Batiment* Joueur::selectionner_batiment() const {
             for (auto& couleur : get_liste_batiment()) {
                 for (auto& bat: couleur.second) {
                     // Affichage du batiment
-                    vue_batiments.push_back(new VueCarte(*bat.first, true, false, window));
+                    vue_batiments.push_back(new VueCarte(*bat.first, false, false, window));
                     layout_batiments->addWidget(vue_batiments[i], i / 4, i % 4);
                     QObject::connect(vue_batiments[i], &QPushButton::clicked, [window, bat, &bat_picked]() {
                         bat_picked = bat.first;
@@ -286,7 +286,7 @@ Batiment* Joueur::selectionner_batiment() const {
             }
         }
     }
-    string message = "Le joueur " + this->get_nom() + " a selectionne le batiment " + bat_picked->get_nom();
+    string message = "Le joueur " + this->get_nom() + " a selectionne " + bat_picked->get_nom_affiche();
     Partie::get_instance()->get_vue_partie()->get_vue_infos()->add_info(message);
     return bat_picked;
 }
@@ -384,7 +384,7 @@ Monument *Joueur::selectionner_monument() const {
             int i = 0;
             for (auto& monument : monuments_jouables) {
                 // Affichage du monument
-                VueCarte* vue_mon = new VueCarte(*monument, true, true, window);
+                VueCarte* vue_mon = new VueCarte(*monument, false, true, window);
                 vue_monuments.push_back(vue_mon);
                 layout_monuments->addWidget(vue_monuments[i], i / 4, i % 4);
                 // Connexion avec slot

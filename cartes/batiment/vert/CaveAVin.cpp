@@ -36,7 +36,7 @@ void CaveAVin::declencher_effet(const ContexteDeclenchement& ctx) const {
 
     if (bat != nullptr) {
             if (nb_vignoble > 0) {
-                partie->get_vue_partie()->get_vue_infos()->add_info("Activation de l'effet de la carte Cave a vin du joueur \""+ j_actuel->get_nom() + "\"");
+                partie->get_vue_partie()->get_vue_infos()->add_info("Activation de " + get_nom_affiche() + " chez " + j_actuel->get_nom());
             }
 
         j_actuel->set_argent(j_actuel->get_argent() + 6 * nb_vignoble * (1 + ctx.supplement));

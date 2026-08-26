@@ -18,7 +18,7 @@ void Epicerie::declencher_effet(const ContexteDeclenchement& ctx) const{
 
 
     if (j_actuel->nb_monuments_construits() < 2){
-        partie->get_vue_partie()->get_vue_infos()->add_info("Activation de l'effet de la carte Epicerie du joueur \""+ j_actuel->get_nom() + "\"");
+        partie->get_vue_partie()->get_vue_infos()->add_info("Activation de " + get_nom_affiche() + " chez " + j_actuel->get_nom());
         j_actuel->set_argent(j_actuel->get_argent() + 2 + ctx.supplement);
     }
 }

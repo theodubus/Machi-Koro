@@ -15,7 +15,7 @@ void HotelDeVille::declencher_effet(const ContexteDeclenchement& ctx) const {
     Joueur * joueur = partie->get_tab_joueurs()[ctx.possesseur];
 
     if (joueur->get_argent() == 0) {
-        partie->get_vue_partie()->get_vue_infos()->add_info("Activation de l'effet de l'Hotel de ville du joueur \"" + joueur->get_nom() + "\"");
+        partie->get_vue_partie()->get_vue_infos()->add_info("Activation de " + get_nom_affiche() + " chez " + joueur->get_nom());
         joueur->set_argent(1);
     }
 }

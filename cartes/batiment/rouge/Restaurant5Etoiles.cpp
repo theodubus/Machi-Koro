@@ -18,7 +18,7 @@ void Restaurant5Etoiles::declencher_effet(const ContexteDeclenchement& ctx) cons
 
     if (ctx.joueur_actuel != ctx.possesseur){
         if(joueur_actuel->nb_monuments_construits() >= 2){
-            partie->get_vue_partie()->get_vue_infos()->add_info("Activation de l'effet du Restaurant 5 Etoiles du joueur \""+ joueur_possesseur->get_nom() + "\"");
+            partie->get_vue_partie()->get_vue_infos()->add_info("Activation de " + get_nom_affiche() + " chez " + joueur_possesseur->get_nom());
             partie->transfert_argent(ctx.joueur_actuel, ctx.possesseur, 5 + ctx.supplement);
         }
     }

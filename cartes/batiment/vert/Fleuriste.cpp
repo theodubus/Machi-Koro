@@ -31,7 +31,7 @@ void Fleuriste::declencher_effet(const ContexteDeclenchement& ctx) const {
     }
 
     if (nb_champs_fleur > 0) {
-        partie->get_vue_partie()->get_vue_infos()->add_info("Activation de l'effet de la carte Fleuriste du joueur \""+ j_actuel->get_nom() + "\"");
+        partie->get_vue_partie()->get_vue_infos()->add_info("Activation de " + get_nom_affiche() + " chez " + j_actuel->get_nom());
     }
 
     // on donne 1 piece par champ de fleur

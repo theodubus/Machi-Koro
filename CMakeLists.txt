@@ -32,6 +32,7 @@ include_directories(controleur)
 include_directories(controleur/EditionDeJeu)
 include_directories(exception)
 include_directories(joueur)
+include_directories(vue)
 
 # Sources du jeu, main.cpp excepte : partagees entre l'executable et l'outil de
 # verification des cartes, pour qu'aucun des deux ne puisse deriver de l'autre.
@@ -158,22 +159,26 @@ set(MACHI_KORO_SOURCES
         controleur/Shop.h
         controleur/VuePartie.cpp
         controleur/VuePartie.h
-        controleur/VuePartie.cpp
-        controleur/VuePartie.h
-        controleur/VuePioche.cpp
-        controleur/VuePioche.h
-        controleur/VueShop.cpp
-        controleur/VueShop.h
         controleur/VueInfo.cpp
         controleur/VueInfo.h
 
         joueur/Joueur.cpp
         joueur/Joueur.h
-        joueur/VueJoueur.cpp
-        joueur/VueJoueur.h
 
         exception/gameExeption.h
-        controleur/VueDes.cpp controleur/VueDes.h)
+
+        vue/Decor.cpp
+        vue/Decor.h
+        vue/ItemBouton.cpp
+        vue/ItemBouton.h
+        vue/ItemCarte.cpp
+        vue/ItemCarte.h
+        vue/ScenePlateau.cpp
+        vue/ScenePlateau.h
+        vue/StyleJeu.cpp
+        vue/StyleJeu.h
+        vue/VuePlateau.cpp
+        vue/VuePlateau.h)
 
 add_executable(Machi_Koro main.cpp ${MACHI_KORO_SOURCES})
 

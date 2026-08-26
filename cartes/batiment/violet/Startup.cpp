@@ -24,7 +24,7 @@ void Startup::declencher_effet(const ContexteDeclenchement& ctx) const {
     Joueur* j_actuel = tab_joueurs[ctx.possesseur];
 
     partie->get_vue_partie()->get_vue_infos()->add_info(
-            "Activation de l'effet de la Startup du joueur \"" + j_actuel->get_nom() + "\"");
+            "Activation de " + get_nom_affiche() + " chez " + j_actuel->get_nom());
 
     // On compte les pieces posees sur les Startups de TOUS les joueurs, y compris
     // celles du ctx.possesseur.

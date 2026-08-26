@@ -28,7 +28,7 @@ void EntrepriseDeDemenagement::declencher_effet(const ContexteDeclenchement& ctx
         cout << "Vous ne possedez aucun batiment non special !" << endl;
         return;
     }
-    partie->get_vue_partie()->get_vue_infos()->add_info("Activation de l'effet de la carte Entreprise de demenagement du joueur \""+ j_actuel->get_nom() + "\"");
+    partie->get_vue_partie()->get_vue_infos()->add_info("Activation de " + get_nom_affiche() + " chez " + j_actuel->get_nom());
 
     vector<Joueur*> tab_joueurs = Partie::get_instance()->get_tab_joueurs();
 

@@ -8,6 +8,14 @@
 #include "gameExeption.h"
 #include "ContexteDeclenchement.h"
 
+/// Nom d'une carte tel qu'il figure sur son visuel.
+///
+/// `get_nom()` rend l'identifiant interne — « HotelDeVille », « ChampBle » — qui
+/// sert de cle dans tout le code : recherche d'un monument, comparaison a l'achat,
+/// table de reference des cartes. Il n'est pas montrable a un joueur, et il l'a
+/// pourtant ete pendant toute la vie du projet, jusque dans le journal de partie.
+const std::string& nom_lisible(const std::string& nom_interne);
+
 class Carte {
 protected:
     std::string nom;
@@ -22,6 +30,8 @@ public:
 
     // Getters
     const std::string& get_nom() const { return nom; }
+    /// Le nom a montrer au joueur. Voir nom_lisible().
+    const std::string& get_nom_affiche() const { return nom_lisible(nom); }
     const std::string& get_description() const { return description_effet; }
     const std::string& get_path_image() const { return path_image; }
     unsigned int get_prix() const { return prix; }

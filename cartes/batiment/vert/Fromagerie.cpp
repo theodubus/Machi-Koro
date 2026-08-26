@@ -20,7 +20,7 @@ void Fromagerie::declencher_effet(const ContexteDeclenchement& ctx) const {
     unsigned int nb_betail = j_actuel->count_type(type_bat::Betail);
 
     if (nb_betail > 0) {
-        partie->get_vue_partie()->get_vue_infos()->add_info("Activation de l'effet de la carte Fromagerie du joueur \""+ j_actuel->get_nom() + "\"");
+        partie->get_vue_partie()->get_vue_infos()->add_info("Activation de " + get_nom_affiche() + " chez " + j_actuel->get_nom());
     }
 
     // On donne 3 pieces par betail

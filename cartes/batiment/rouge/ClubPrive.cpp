@@ -17,7 +17,7 @@ void ClubPrive::declencher_effet(const ContexteDeclenchement& ctx) const{
 
     if (ctx.joueur_actuel != ctx.possesseur){
         if(joueur_actuel->nb_monuments_construits() >= 3){
-            partie->get_vue_partie()->get_vue_infos()->add_info( "Activation de l'effet du Club Prive du joueur \""+ joueur_possesseur->get_nom() + "\"");
+            partie->get_vue_partie()->get_vue_infos()->add_info( "Activation de " + get_nom_affiche() + " chez " + joueur_possesseur->get_nom());
             partie->transfert_argent(ctx.joueur_actuel, ctx.possesseur, joueur_actuel->get_argent());
         }
     }

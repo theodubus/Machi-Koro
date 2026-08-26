@@ -49,7 +49,7 @@ void CentreAffaires::declencher_effet(const ContexteDeclenchement& ctx) const {
         return;
     }
 
-    partie->get_vue_partie()->get_vue_infos()->add_info("Activation de l'effet du Centres des Affaires du joueur \"" + j_actuel->get_nom() +"\"");
+    partie->get_vue_partie()->get_vue_infos()->add_info("Activation de " + get_nom_affiche() + " chez " + j_actuel->get_nom());
 
     // Choix du joueur
     unsigned int num_joueur;

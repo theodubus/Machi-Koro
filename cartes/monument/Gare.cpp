@@ -17,7 +17,7 @@ void Gare::declencher_effet(const ContexteDeclenchement& ctx) const {
     if (joueur->get_est_ia()) {
         int choix = rand() % 4;
         if (choix != 0) {
-            partie->get_vue_partie()->get_vue_infos()->add_info("Activation de l'effet de la gare du joueur \"" + joueur->get_nom() + "\"");
+            partie->get_vue_partie()->get_vue_infos()->add_info("Activation de " + get_nom_affiche() + " chez " + joueur->get_nom());
             partie->set_de_2(Partie::lancer_de());
         }
     }
@@ -30,7 +30,7 @@ void Gare::declencher_effet(const ContexteDeclenchement& ctx) const {
         msgBox.setDefaultButton(QMessageBox::No);
         int ret = msgBox.exec();
         if (ret == QMessageBox::Yes) {
-            string effet = "Activation de l'effet de la gare du joueur \"" + joueur->get_nom() + "\"";
+            string effet = "Activation de " + get_nom_affiche() + " chez " + joueur->get_nom();
             partie->set_de_2(Partie::lancer_de());
             partie->get_vue_partie()->update_des();
             partie->get_vue_partie()->get_vue_infos()->add_info(effet);

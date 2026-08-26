@@ -20,7 +20,7 @@ void HalleDeMarche::declencher_effet(const ContexteDeclenchement& ctx) const {
     unsigned int nb_restaurant = j_actuel->count_type(type_bat::Restaurant);
 
     if (nb_restaurant > 0) {
-        partie->get_vue_partie()->get_vue_infos()->add_info("Activation de l'effet de la carte Halle de marche du joueur \""+ j_actuel->get_nom() + "\"");
+        partie->get_vue_partie()->get_vue_infos()->add_info("Activation de " + get_nom_affiche() + " chez " + j_actuel->get_nom());
     }
 
     // On donne 2 pieces par restaurant

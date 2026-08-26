@@ -18,5 +18,5 @@ void CentreCommercial::declencher_effet(const ContexteDeclenchement& ctx) const 
     /// Il ne reste ici qu'a signaler son activation dans le journal.
     Joueur* possesseur = Partie::get_instance()->get_tab_joueurs()[ctx.possesseur];
     Partie::get_instance()->get_vue_partie()->get_vue_infos()->add_info(
-            "Activation de l'effet du Centre commercial du joueur \"" + possesseur->get_nom() + "\"");
+            "Activation de " + get_nom_affiche() + " chez " + possesseur->get_nom());
 }

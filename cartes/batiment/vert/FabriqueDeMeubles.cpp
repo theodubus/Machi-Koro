@@ -21,7 +21,7 @@ void FabriqueDeMeubles::declencher_effet(const ContexteDeclenchement& ctx) const
     unsigned int nb_engrenages = j_actuel->count_type(type_bat::Engrenage);
 
     if (nb_engrenages > 0) {
-        partie->get_vue_partie()->get_vue_infos()->add_info("Activation de l'effet de la carte Fabrique de meubles du joueur \""+ j_actuel->get_nom() + "\"");
+        partie->get_vue_partie()->get_vue_infos()->add_info("Activation de " + get_nom_affiche() + " chez " + j_actuel->get_nom());
     }
 
     // On donne 3 pieces par engrenage

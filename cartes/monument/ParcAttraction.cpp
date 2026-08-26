@@ -14,7 +14,7 @@ void ParcAttraction::declencher_effet(const ContexteDeclenchement& ctx) const {
     Joueur *joueur = Partie::get_instance()->get_tab_joueurs()[ctx.possesseur];
 
     if (Partie::get_instance()->get_de_1() == Partie::get_instance()->get_de_2()) {
-        Partie::get_instance()->get_vue_partie()->get_vue_infos()->add_info("Activation de l'effet du Parc d'attractions du joueur \"" + joueur->get_nom() + "\"");
+        Partie::get_instance()->get_vue_partie()->get_vue_infos()->add_info("Activation de " + get_nom_affiche() + " chez " + joueur->get_nom());
         Partie::get_instance()->rejouer_tour();
     }
 }

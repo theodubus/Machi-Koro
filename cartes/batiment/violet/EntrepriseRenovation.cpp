@@ -28,7 +28,7 @@ void EntrepriseRenovation::declencher_effet(const ContexteDeclenchement& ctx) co
         return;
     }
 
-    partie->get_vue_partie()->get_vue_infos()->add_info("Activation de l'effet de l'entreprise de renovation du joueur \"" + j_actuel->get_nom() + "\"");
+    partie->get_vue_partie()->get_vue_infos()->add_info("Activation de " + get_nom_affiche() + " chez " + j_actuel->get_nom());
 
     // Selection du batiment du joueur
     Batiment *batiment;

@@ -19,7 +19,7 @@ void PetitBateauDePeche::declencher_effet(const ContexteDeclenchement& ctx) cons
     Joueur* joueur_actuel = partie->get_tab_joueurs()[ctx.possesseur];
 
     if(joueur_actuel->monument_construit("Port")){
-        partie->get_vue_partie()->get_vue_infos()->add_info("Activation de l'effet du PetitBateauDePeche du joueur \"" + joueur_actuel->get_nom() + "\"");
+        partie->get_vue_partie()->get_vue_infos()->add_info("Activation de " + get_nom_affiche() + " chez " + joueur_actuel->get_nom());
         unsigned int argent = joueur_actuel->get_argent();
         argent += 3;
         joueur_actuel->set_argent(argent);

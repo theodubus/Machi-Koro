@@ -31,7 +31,7 @@ void MgaGameCenter::declencher_effet(const ContexteDeclenchement& ctx) const{
     Batiment * bat = j_actuel->possede_batiment("MgaGameCenter");
 
     if (bat != nullptr) {
-        instance->get_vue_partie()->get_vue_infos()->add_info("Activation de l'effet du MgaGameCenter du joueur \"" + j_actuel->get_nom() + "\"");
+        instance->get_vue_partie()->get_vue_infos()->add_info("Activation de " + get_nom_affiche() + " chez " + j_actuel->get_nom());
 
         // Selection du batiment du joueur
         Batiment *batiment = j_actuel->selectionner_batiment();

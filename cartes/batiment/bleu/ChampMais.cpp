@@ -21,7 +21,7 @@ void ChampMais::declencher_effet(const ContexteDeclenchement& ctx) const{
 
     //On augmente de un l'argent du joueur pointe s'il a moins de deux monuments construits
     if(joueur_actuel->nb_monuments_construits() < 2) {
-        partie->get_vue_partie()->get_vue_infos()->add_info("Activation de l'effet du ChampMais du joueur \"" + joueur_actuel->get_nom() + "\"");
+        partie->get_vue_partie()->get_vue_infos()->add_info("Activation de " + get_nom_affiche() + " chez " + joueur_actuel->get_nom());
         joueur_actuel->set_argent(arg + 1);
     }
 }

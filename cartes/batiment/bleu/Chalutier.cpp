@@ -20,7 +20,7 @@ void Chalutier::declencher_effet(const ContexteDeclenchement& ctx) const{
 
     //on verifie si le joueur selectionne a bien CONSTRUIT le Port
     if(joueur_actuel->monument_construit("Port")){
-        partie->get_vue_partie()->get_vue_infos()->add_info("Activation de l'effet du Chalutier du joueur \"" + joueur_actuel->get_nom() + "\"");
+        partie->get_vue_partie()->get_vue_infos()->add_info("Activation de " + get_nom_affiche() + " chez " + joueur_actuel->get_nom());
         // Les deux des ne sont lances qu'une fois par tour, par le joueur dont c'est le
         // tour : le meme resultat vaut pour tous les Chalutiers de tous les joueurs.
         unsigned int result_des = partie->get_de_chalutier();

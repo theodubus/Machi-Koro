@@ -12,12 +12,36 @@
 #include <QSpinBox>
 #include <QCheckBox>
 #include <QStandardItem>
+// Ces en-tetes arrivaient jusqu'ici par VuePartie.h, qui incluait <QtGui> en
+// entier. Le menu s'en sert directement : il les demande desormais lui-meme.
+#include <QLabel>
+#include <QPushButton>
+#include <QFormLayout>
+#include <QVBoxLayout>
+#include <QHBoxLayout>
 
 
 /// Project Includes
 #include "Partie.h"
+#include "StyleJeu.h"
 #include <set>
 using namespace std;
+
+/// Bandeau de titre des menus. Les deux ecrans de reglage s'ouvraient sur une
+/// liste deroulante, sans rien dire du jeu qu'on lance.
+QVBoxLayout* entete_menu(const QString& sous_titre) {
+    auto* bloc = new QVBoxLayout;
+    auto* titre = new QLabel("Minivilles");
+    titre->setObjectName("titre");
+    titre->setAlignment(Qt::AlignCenter);
+    bloc->addWidget(titre);
+    auto* legende = new QLabel(sous_titre);
+    legende->setObjectName("sous_titre");
+    legende->setAlignment(Qt::AlignCenter);
+    bloc->addWidget(legende);
+    bloc->addSpacing(14);
+    return bloc;
+}
 
 void resize_and_center(QWidget *widget, int width, int height)
 {
@@ -117,7 +141,7 @@ void launch_menu_2(const string &edition_name, const list<string> &extensions){
 
     auto *window = new QDialog();
 
-    window->setWindowTitle("Machi Koro - Menu");
+    window->setWindowTitle("Minivilles — réglages de la partie");
     window->setContentsMargins(50, 30, 50, 50);
 
     auto *label = new QLabel("Choisissez le nombre de joueurs :");
@@ -129,6 +153,9 @@ void launch_menu_2(const string &edition_name, const list<string> &extensions){
     auto *formLayout = new QFormLayout;
     for (int i = 0; i < spinBox->value(); i++) {
         auto *lineEdit = new QLineEdit;
+        // Le champ etait vide et sans indication : rien ne disait qu'il fallait
+        // le remplir avant que la validation ne refuse la partie.
+        lineEdit->setPlaceholderText("Nom du joueur");
         auto *comboBox = new QComboBox;
         comboBox->addItem("Humain");
         comboBox->addItem("IA agressive");
@@ -143,6 +170,7 @@ void launch_menu_2(const string &edition_name, const list<string> &extensions){
     }
 
     auto *layout = new QVBoxLayout;
+    layout->addLayout(entete_menu("Qui joue, et avec quelle boutique ?"));
     auto *h_layout = new QHBoxLayout;
     h_layout->addWidget(label);
     h_layout->addWidget(spinBox);
@@ -201,6 +229,7 @@ void launch_menu_2(const string &edition_name, const list<string> &extensions){
 
         for (int i = 0; i < value; i++) {
             auto *lineEdit = new QLineEdit;
+            lineEdit->setPlaceholderText("Nom du joueur");
             auto *comboBox = new QComboBox;
             comboBox->addItem("Humain");
             comboBox->addItem("IA agressive");
@@ -267,10 +296,13 @@ void validate_menu_1(QWidget *menu, const string &edition, const list<string> &e
 void launch_menu_1(QApplication *app){
 
     auto *menu = new QWidget();
-    resize_and_center(menu, 500, 180);
+    menu->setObjectName("menu_minivilles");
+    resize_and_center(menu, 580, 300);
 
 
-    menu->setContentsMargins(50, 30, 50, 50);
+    menu->setContentsMargins(50, 26, 50, 40);
+    auto *pile = new QVBoxLayout(menu);
+    pile->addLayout(entete_menu("Choisissez votre édition avant de lancer la partie"));
     auto *gridLayout = new QGridLayout;
 
 
@@ -287,7 +319,7 @@ void launch_menu_1(QApplication *app){
     model->appendRow(item3);
     model->appendRow(item4);
 
-    editionCombo->setMinimumWidth(200);
+    editionCombo->setMinimumWidth(270);
 
     item1->setFlags(item1->flags() & ~Qt::ItemIsEnabled);
 
@@ -370,8 +402,8 @@ void launch_menu_1(QApplication *app){
         validate_menu_1(menu, edition, extensions);
     });
 
-    menu->setLayout(gridLayout);
-    menu->setWindowTitle("Machi Koro - Menu");
+    pile->addLayout(gridLayout);
+    menu->setWindowTitle("Minivilles");
 
     menu->show();
 }
@@ -384,6 +416,10 @@ int main(int argc, char * argv[]) {
     // appels setStyle() widget par widget construisaient un second objet Fusion,
     // au rendu identique et que personne ne liberait.
     app.setStyle(QStyleFactory::create("Fusion"));
+    // Les menus et les fenetres de choix des cartes portaient chacun ses propres
+    // couleurs, quand ils en avaient. Une seule feuille de style les accorde au
+    // plateau, sans avoir a reprendre chaque widget.
+    app.setStyleSheet(Style::feuille());
     launch_menu_1(&app);
 
     return QApplication::exec();

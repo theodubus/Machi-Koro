@@ -38,7 +38,7 @@ void BanqueDeMinivilles::declencher_effet(const ContexteDeclenchement& ctx) cons
 
     Partie * partie = Partie::get_instance();
     Joueur* j_actuel = partie->get_tab_joueurs()[index_possesseur];
-    partie->get_vue_partie()->get_vue_infos()->add_info("Activation de l'effet de la carte Banque de minivilles du joueur \""+ j_actuel->get_nom() + "\"");
+    partie->get_vue_partie()->get_vue_infos()->add_info("Activation de " + get_nom_affiche() + " chez " + j_actuel->get_nom());
 
     if (j_actuel->get_argent() >= 2) {
         j_actuel->set_argent(j_actuel->get_argent() - 2);

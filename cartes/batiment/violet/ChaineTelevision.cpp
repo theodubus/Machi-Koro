@@ -20,7 +20,7 @@ void ChaineTelevision::declencher_effet(const ContexteDeclenchement& ctx) const{
     Partie *partie = Partie::get_instance();
     const vector<Joueur*> tab_joueurs = Partie::get_instance()->get_tab_joueurs();
     Joueur* j_actuel = tab_joueurs[ctx.possesseur];
-    partie->get_vue_partie()->get_vue_infos()->add_info("Activation de l'effet de la Chaine de Television du joueur \"" + j_actuel->get_nom() +"\"");
+    partie->get_vue_partie()->get_vue_infos()->add_info("Activation de " + get_nom_affiche() + " chez " + j_actuel->get_nom());
 
     // Choix de joueur
     unsigned int j_echange = Partie::selectionner_joueur(tab_joueurs, ctx.possesseur);
