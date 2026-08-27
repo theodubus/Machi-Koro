@@ -24,24 +24,31 @@ projet de LO21 à l'UTC. ~62 en-têtes et 62 sources, plus les visuels des carte
 
 ## La table, et la caméra
 
-Le plateau n'est pas une grille de panneaux : c'est une **table ronde filmée
+Le plateau n'est pas une grille de panneaux : c'est une **table ovale filmée
 d'au-dessus et de trois quarts**, sur laquelle les cartes sont *couchées*. C'est
 la maquette validée, et le point sur lequel une première tentative s'est
 fourvoyée en reconstruisant un tableau de bord plat.
 
-Trois choses à savoir avant d'y toucher :
+Quatre choses à savoir avant d'y toucher :
 
-- **Tout se mesure en unités de table**, pas en pixels. Le tapis a 620 de rayon ;
-  une carte de boutique fait 98 de large *dans le plan*. C'est la caméra qui
-  décide de ce que cela donne à l'écran, et elle change tout d'un coup.
+- **Tout se mesure en unités de table**, pas en pixels. L'ovale a 636 de demi-
+  largeur et 404 de demi-profondeur ; une carte de boutique fait 92 de large
+  *dans le plan*. C'est la caméra qui décide de ce que cela donne à l'écran, et
+  elle change tout d'un coup.
 - **L'inclinaison est le seul réglage qui compte** : le rapport
   `HAUTEUR_CAMERA / RECUL` de `Perspective.cpp`. Caméra basse, la table s'aplatit
   et les cartes deviennent des traits ; caméra haute, on tombe sur une vue de
-  dessus. Le réglage actuel regarde la table à environ trente-trois degrés.
+  dessus. Le réglage actuel regarde la table à environ cinquante-trois degrés.
 - **La focale et le centre vertical se calculent tout seuls** (`Cadrage`), pour
   que le tapis projeté tombe à la largeur et à la place voulues. Les fixer à la
   main obligeait à reprendre tous les autres nombres dès qu'on touchait à
   l'inclinaison — c'est ce qui a coûté le plus de temps.
+- **La table déborde du cadre par le bas**, et c'est voulu. Un ovale se pince à
+  ses deux pointes, et la pointe proche est justement celle où le joueur pose ses
+  propres cartes : en la laissant sortir de l'écran, la bande visible du bord
+  proche reste large. Conséquence : le feutre n'est plus toujours ce qui borne
+  une rangée, l'écran l'est aussi — d'où `Perspective::place_ecran()`, dont
+  `poser_cartes()` prend le minimum avec `demi_largeur()`.
 
 Une carte posée occupe un quadrilatère du plan, obtenu par
 `QTransform::quadToQuad`. Soulevée, elle interpole ses quatre coins vers un
@@ -50,6 +57,30 @@ survol et au projecteur, et c'est ce qui règle la lisibilité que la perspectiv
 coûte. Les cartes qui **ne sont pas sur la table** — les monuments, épinglés à la
 plaque de leur propriétaire — passent par `poser_hors_table()` : sans cela, le
 premier survol les téléportait au centre du tapis.
+
+## Où l'on s'assied autour de la table
+
+Les adversaires sont **tous au fond**, côte à côte dans l'ordre du tour. Les
+asseoir sur les flancs paraissait plus juste, mais le flanc de la table est
+aussi le bord de l'écran : leurs cartes y passaient sous les dés et sous la
+pioche, qui n'ont nulle part où aller ailleurs depuis que la table remplit le
+cadre. Tous au fond, les deux flancs se libèrent et la boutique peut s'étaler.
+
+`poser_cartes()` ne reçoit pas une taille de carte mais un **plafond** et une
+**bande** : il essaie chaque nombre de rangées et garde celui qui *montre le plus
+de carte*. Ce n'est pas la même chose que la plus grande carte — onze cartes sur
+une rangée sont grandes mais recouvertes aux trois quarts, alors qu'en deux
+rangées elles se voient entières. Trois bornes encadrent chaque essai : la
+lisière qu'une carte doit laisser voir à sa voisine, la profondeur au-delà de
+laquelle une seconde rangée sortirait du feutre par le fond, et le rétrécissement
+de la table pour une ville posée loin du centre. Un seuil fixe de huit cartes par
+ville donnait, à deux joueurs, des villes minuscules dans une bande vide et, à
+six, des cartes trop grandes dont on ne voyait qu'un coin.
+
+Dans un éventail, c'est la carte de **gauche** qui passe devant sa voisine :
+chaque carte ne laisse voir que son bord droit, et c'est là qu'est le numéro
+d'activation. Étalé dans l'autre sens, un éventail serré ne montrait que des
+coins vides.
 - `assets/` — visuels des cartes, des monuments et des dés.
 
 ## Compiler et lancer
@@ -190,10 +221,16 @@ Deux valeurs ne reposent sur aucune source publiée, et ne le peuvent pas :
     *avant* le rejeu. C'est assumé : les déplacer demanderait de découper les
     quatre boucles de couleur en étapes asynchrones.
 - Une ville se **déplie** quand l'étape en cours peut y activer quelque chose, ou
-  quand le joueur a épinglé sa plaque d'un clic. Dépliée, elle avance sur la
-  table et ses cartes grandissent. Les cartes d'une ville s'étalent en éventail
-  sur **une seule rangée** au-delà d'une certaine largeur : les empiler en
-  profondeur enterrait celles du fond sous celles de devant.
+  quand le joueur a épinglé sa plaque d'un clic. Dépliée, elle déborde un quart
+  sur ses voisines et ses cartes grandissent. La reculer davantage ne servirait à
+  rien : au fond, c'est la boutique qui l'arrête, et la perspective ne rend qu'un
+  centième.
+- `QPainterPath` remplit en **pair-impair** par défaut. Le bandeau coloré d'une
+  plaque est l'union de deux morceaux qui se recouvrent : sans
+  `setFillRule(Qt::WindingFill)`, leur intersection ressortait en trou clair au
+  beau milieu du bandeau, en travers du nom du joueur. `simplified()` ne corrige
+  rien, il applique la règle en vigueur. Ailleurs, `Decor` passe par `united()`,
+  qui ne pose pas la question.
 - Les objets de la scène sont détruits et recréés par `ScenePlateau::rafraichir()`.
   Tout pointeur gardé vers un `ItemCarte` doit être oublié à ce moment : c'est ce
   que fait `vider()` pour `cartes_projetees`.
@@ -256,7 +293,10 @@ détruit son journal. Restent 1268 o en 16 allocations, toutes internes à Qt.
 
 Reste, côté confort :
 
-- la boutique laisse une bande de tapis vide quand elle tient sur une rangée ;
+- la table garde deux croissants de feutre vides sur les flancs, entre la
+  boutique et les panneaux des dés et de la pioche ;
+- à six joueurs, les plaques du fond se chevauchent d'une douzaine de pixels et
+  leurs vignettes de monument se serrent comme une pile ;
 - les avatars sont dessinés au trait et ne distinguent que quatre silhouettes,
   alors que l'édition Custom accepte six joueurs — au-delà, elles se répètent, la
   couleur seule les sépare ;

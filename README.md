@@ -10,8 +10,8 @@ nouvelles cartes ou à construire des monuments. Le premier joueur à avoir
 construit tous les monuments requis par l'édition remporte la partie.
 
 ![La table vue d'au-dessus : la boutique étalée au centre, la ville du joueur
-courant au bord proche, les villes adverses en éventail sur le pourtour, et un
-monument soulevé avec sa bulle](docs/plateau.png)
+courant au bord proche, les villes adverses alignées au fond, et une carte
+soulevée du tapis avec sa bulle](docs/plateau.png)
 
 ## Sommaire
 
@@ -35,7 +35,7 @@ monument soulevé avec sa bulle](docs/plateau.png)
 - Adversaires contrôlés par l'ordinateur, avec trois profils : agressif, défensif ou aléatoire
 - Boutique paramétrable : nombre de piles visibles limité, ou catalogue complet
 - Pioche mélangée à chaque partie et réapprovisionnement automatique de la boutique
-- Interface graphique Qt6 : une table ronde vue d'au-dessus, sur laquelle les cartes sont posées à plat — la boutique au centre, les villes de tous les joueurs sur le pourtour, les dés lancés devant soi
+- Interface graphique Qt6 : une table ovale vue d'au-dessus, sur laquelle les cartes sont posées à plat — la boutique au centre, sa ville au bord proche, celles des adversaires au fond
 - Le tour se déroule sous les yeux du joueur : chaque carte qui produit son effet se soulève du tapis chez ceux qu'elle concerne, se redresse face à la caméra et annonce ce qu'elle vient de faire
 
 ## Déroulement d'un tour
@@ -55,17 +55,25 @@ de droite, et les pièces traversent le plateau du payeur vers le bénéficiaire
 
 ## L'interface
 
-Il n'y a pas de tableau de bord : il y a **une table**, ronde, posée dans un
+Il n'y a pas de tableau de bord : il y a **une table**, ovale, posée dans un
 paysage et filmée d'au-dessus. Les cartes y sont couchées à plat, et ce qui est
 loin est plus petit et plus écrasé que ce qui est près — c'est une vraie
-projection, pas un dégradé de tailles.
+projection, pas un dégradé de tailles. La table déborde du cadre par le bas :
+un ovale se pince à ses deux pointes, et laisser sortir la pointe proche garde
+large la bande où le joueur pose ses propres cartes.
 
 | Où | Quoi |
 |---|---|
 | Au centre de la table | La boutique, de 9 à 39 piles étalées en rangées ; la taille des cartes s'adapte |
-| Au bord proche | La ville complète du joueur dont c'est le tour, ses dés lancés devant lui et la pioche à portée de main |
-| Sur le pourtour | Les villes des adversaires, en éventail, chacune devant sa plaque |
+| Au bord proche | La ville complète du joueur dont c'est le tour |
+| Au fond | Les villes des adversaires, côte à côte dans l'ordre du tour, chacune sous sa plaque |
+| Sur les flancs | Les dés et la pioche, posés à plat comme le matériel d'une vraie partie |
 | Hors du tapis | Le rail des cinq temps du tour, le profil de la partie, le journal, et la plaque de chaque joueur — avatar, bourse, monuments |
+
+Chaque ville prend la plus grande carte qui tienne dans la place qu'elle a :
+selon le nombre de joueurs et la taille de sa ville, elle s'étale sur une rangée
+ou deux, et ses cartes se chevauchent en éventail juste ce qu'il faut pour que
+chacune montre encore son numéro d'activation.
 
 Survoler n'importe quelle carte de la table — y compris chez un adversaire — la
 **soulève du tapis** : elle se redresse face à la caméra, rejoint une taille de
@@ -86,8 +94,8 @@ Construire se fait en deux gestes : cliquer la carte, puis le bouton
 est couché à 90 degrés, comme le prescrit le livret, et continue de compter pour
 les cartes qui dénombrent.
 
-![Un autre moment de la partie : les dés lancés devant soi, la pioche à portée de
-main, et le rail des étapes du tour](docs/tour.png)
+![Un autre moment de la partie : la phase des restaurants, une carte qui produit
+son effet avec sa bulle, et le rail des étapes du tour](docs/tour.png)
 
 ![Les deux menus de réglage](docs/menus.png)
 

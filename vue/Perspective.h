@@ -44,6 +44,11 @@ namespace Perspective {
     /// Demi-largeur utilisable a la profondeur `v` : au-dela, on quitte le feutre.
     qreal demi_largeur(qreal v);
 
+    /// Demi-largeur que le **cadre** laisse voir a la profondeur `v`, en unites
+    /// de table, une fois retiree `marge` pixels de chaque cote. La table etant
+    /// plus large que l'ecran, c'est souvent elle qui limite, pas le feutre.
+    qreal place_ecran(qreal v, qreal marge = 0);
+
     /// Profondeur qu'occupe une carte de cette largeur, en unites de `v`.
     qreal profondeur_carte(qreal largeur);
 }

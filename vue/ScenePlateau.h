@@ -28,21 +28,28 @@ class QGraphicsPathItem;
 ///
 /// Tout se passe **sur une table ovale**, vue de trois quarts, posee dans un
 /// paysage. Il n'y a pas de tableau de bord : la boutique est etalee au centre
-/// de la table, les villes des joueurs sur son pourtour, le de au milieu. Ce qui
-/// est loin est plus petit et plus haut — voir Perspective, qui porte toute la
-/// geometrie.
+/// de la table et les villes des joueurs de part et d'autre. Ce qui est loin est
+/// plus petit et plus ecrase — voir Perspective, qui porte toute la geometrie.
+///
+/// La table **deborde du cadre par le bas** : un ovale se pince a ses deux
+/// pointes, et la pointe proche est justement la ou le joueur pose ses cartes.
+/// La laisser sortir de l'ecran garde large la bande du bord proche.
 ///
 ///        ciel, montagnes, silhouette de ville
 ///     +----------------------------------------------+
 ///     | rail des phases                     entete   |
-///     |          ___-------------------___           |
-///     |     [adv]      villes du fond      [adv]     |
-///     |    /            [ les des ]            \     |
-///     |   |     boutique etalee sur le tapis    |    |
-///     |    \                                   /     |
-///     |     ------  ma ville, au bord proche ------   |
-///     | journal                            boutons   |
+///     | journal   ___---------------------___        |
+///     |          / [adv]   [adv]    [adv]   \        |
+///     | [des]   |                            | [pioche]
+///     |         |  boutique etalee au centre |       |
+///     |          \                          /        |
+///     |            ma ville, au bord proche           |
+///     | plaque                            boutons    |
 ///     +----------------------------------------------+
+///
+/// Les adversaires s'installent **tous au fond**, cote a cote dans l'ordre du
+/// tour : les flancs restent libres pour les des et la pioche, qui n'ont nulle
+/// part ou aller ailleurs depuis que la table remplit le cadre.
 ///
 /// La ville concernee par l'etape en cours se **deplie** : ses cartes avancent
 /// et grandissent. Celle qui produit son effet se souleve du tapis, se redresse
@@ -119,17 +126,19 @@ private:
     void poser_ville_active();
     void poser_des();
 
-    /// Ou s'installe un joueur autour de la table : le centre de sa ville, et
-    /// le cote du tapis vers lequel sa plaque deborde.
-    struct Place { qreal u; qreal v; int colonnes; QPointF plaque; };
+    /// Ou s'installe un joueur autour de la table : le centre de sa ville sur le
+    /// tapis, la largeur de sa plaque et celle de la bande ou sa ville s'etale,
+    /// et le coin ou sa plaque se pose — hors du tapis.
+    struct Place { qreal u; qreal v; qreal largeur_plaque; qreal bande; QPointF plaque; };
     Place place_de(unsigned int rang, unsigned int nb_adversaires) const;
 
     /// Etale les cartes d'une ville sur la table, autour de (u, v), rangees par
-    /// numero d'activation. `largeur` est la largeur d'une carte au bord proche ;
-    /// `rangees_max` borne l'empilement en profondeur, le reste se chevauchant en
-    /// eventail.
+    /// numero d'activation. `bande` est la largeur qui lui est allouee et
+    /// `largeur_max` la plus grande carte qu'on accepte d'y poser : c'est la
+    /// methode qui choisit la taille reelle et le nombre de rangees, bornees par
+    /// `rangees_max`, de facon que chaque carte laisse voir sa lisiere.
     void poser_cartes(unsigned int indice_joueur, qreal u_centre, qreal v,
-                      int largeur, int rangees_max, qreal bande,
+                      int largeur_max, int rangees_max, qreal bande,
                       QList<QGraphicsItem*>& sortie);
 
     /// La plaque d'un joueur — avatar, nom, bourse, monuments — posee au bord du

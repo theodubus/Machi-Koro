@@ -29,24 +29,36 @@ namespace {
     // est **pose sur le tapis**, en coordonnees (u, v) de Perspective.
     const QRectF ZONE_RAIL    (  20,  14, 1000, 40);
     const QRectF ZONE_ENTETE  (1216,  14,  364, 44);
-    const QRectF ZONE_JOURNAL (  20,  74,  244, 168);
-    const QRectF ZONE_BOUTONS (1268, 828,  312,  52);
+    const QRectF ZONE_JOURNAL (  16,  72,  240, 150);
+    const QRectF ZONE_BOUTONS (1288, 828,  292,  52);
 
     // ------------------------------------------------- les places sur la table
     // Toutes ces mesures sont en **unites de table** — le tapis a 620 de rayon —
     // et non en pixels : c'est la camera qui decide de ce que cela donne a
     // l'ecran, et elle change tout d'un coup si l'on touche a son inclinaison.
-    const qreal BOUTIQUE_U      = 320;   ///< demi-largeur de la boutique
-    const qreal BOUTIQUE_V_FOND = 0.28;
+    // Une carte couchee occupe en profondeur 1,55 fois sa largeur : a 92 de large
+    // elle mange deja un tiers de la table. Les zones se separent donc surtout en
+    // largeur, et le fond reste reserve a une seule ville, en petites cartes.
+    const qreal BOUTIQUE_U      = 408;   ///< demi-largeur de la boutique
+    const qreal BOUTIQUE_V_FOND = 0.44;
     const qreal BOUTIQUE_V_PRES = 0.60;
-    const qreal MA_VILLE_V      = 0.86;
-    const qreal MA_VILLE_U      = 470;
-    // Les des se lancent devant soi, et la pioche est a portee de main : tous
-    // deux au bord proche de la table, dans les coins que la ville laisse libres.
-    const qreal DES_U           = -450;
-    const qreal DES_V           = 0.71;
-    const qreal PIOCHE_U        =  450;
-    const qreal PIOCHE_V        = 0.71;
+
+    /// Les adversaires s'installent tous au fond, sur une seule bande.
+    const qreal ADVERSAIRES_U   = 420;   ///< demi-largeur de la bande du fond
+    const qreal ADVERSAIRES_V   = 0.24;
+
+    // La ville du joueur actif tient la bande proche, entre sa plaque et les
+    // boutons : c'est cette fenetre-la qui la borne, pas le feutre, qui va plus
+    // loin des deux cotes.
+    const qreal MA_VILLE_V      = 0.91;
+    const qreal MA_VILLE_BANDE  = 660;
+
+    // Les des et la pioche ne sont pas des cartes : ils se posent a plat, sans
+    // perspective, sur les **flancs** du cadre — sous le journal a gauche, sous
+    // l'entete a droite. C'est la seule place qui reste : la table deborde
+    // maintenant de l'ecran par le bas, et les villes tiennent tout le reste.
+    const QPointF DES_COIN   (  24, 240);
+    const QPointF PIOCHE_COIN(1336, 240);
 
     /// Part de la hauteur d'une carte qui doit rester visible quand la rangee de
     /// devant la recouvre. Un quart cache, c'est ce que fait un vrai etalement
@@ -54,6 +66,14 @@ namespace {
     const qreal VISIBLE_DERRIERE = 0.75;
 
     const qreal ECART = 6;
+
+    /// Part d'une carte qui doit rester visible quand sa voisine la recouvre —
+    /// la lisiere droite, la ou est le numero d'activation. C'est aussi de cela
+    /// qu'on ecarte deux rangees l'une de l'autre.
+    const qreal LISIERE = 0.62;
+
+    /// Profondeur en deca de laquelle une ville sortirait du feutre par le fond.
+    const qreal MARGE_FOND = 0.07;
 
     QFont police(int taille, bool gras = false) {
         QFont f;
@@ -264,10 +284,20 @@ void ScenePlateau::journal(const std::string& texte) {
     if (ligne.isEmpty()) return;
     ligne.replace('\n', ' ');
     lignes_journal.prepend(ligne);
+    if (texte_journal == nullptr) return;
     // Le journal ne garde que ce qui tient dans le panneau. Il n'y a pas de barre
     // de defilement dans une scene : au-dela, on oublie les plus anciennes lignes.
-    while (lignes_journal.size() > 8) lignes_journal.removeLast();
-    if (texte_journal) texte_journal->setPlainText(lignes_journal.join("\n"));
+    // On mesure le texte au lieu d'en compter les lignes — « Activation de Petit
+    // bateau de peche chez Capucine » se replie sur deux, et huit lignes ainsi
+    // repliees debordaient largement du cadre.
+    const qreal place = ZONE_JOURNAL.bottom() - texte_journal->y() - 10;
+    while (lignes_journal.size() > 12) lignes_journal.removeLast();
+    for (;;) {
+        texte_journal->setPlainText(lignes_journal.join("\n"));
+        if (lignes_journal.size() <= 1 || texte_journal->boundingRect().height() <= place)
+            break;
+        lignes_journal.removeLast();
+    }
 }
 
 // ------------------------------------------------------- panneau de mise en avant
@@ -326,12 +356,11 @@ void ScenePlateau::mettre_en_avant(const Carte* carte, const QString& explicatio
     // trouvent la plaque du joueur et les boutons, qu'elle ne doit pas couvrir.
     const qreal h_texte = texte_avant->boundingRect().height();
     const qreal haut = 44 + h_texte + (proposer_achat ? 56 : 10);
-    qreal x = ancre_bulle.x() + 30;
-    if (x + LARGEUR_BULLE > LARGEUR - 12) x = ancre_bulle.x() - LARGEUR_BULLE - 30;
+    // Du cote ou il reste le plus de place, pour ne pas couvrir la table.
+    const bool a_droite = ancre_bulle.x() < LARGEUR / 2.0;
+    qreal x = a_droite ? ancre_bulle.x() + 110 : ancre_bulle.x() - LARGEUR_BULLE - 110;
     x = std::clamp(x, 12.0, (qreal) LARGEUR - LARGEUR_BULLE - 12);
-    qreal y = ancre_bulle.y() > HAUTEUR * 0.66 ? ancre_bulle.y() - haut - 40
-                                               : ancre_bulle.y() - haut / 2;
-    y = std::clamp(y, 70.0, (qreal) HAUTEUR - haut - 12);
+    qreal y = std::clamp(ancre_bulle.y() - haut / 2, 70.0, (qreal) HAUTEUR - haut - 12);
 
     const QRectF r(x, y, LARGEUR_BULLE, haut);
     bulle->setPath(forme_panneau(r, 14));
@@ -446,31 +475,53 @@ void ScenePlateau::poser_boutique() {
     // remplit la bande centrale de la table sans deborder, en essayant chaque
     // nombre de rangees. Les rangees se resserrent vers le fond toutes seules,
     // c'est la perspective qui s'en charge.
+    // Les rangees s'appuient sur les deux bords de la bande : la premiere au fond,
+    // la derniere devant. Diviser la bande par le nombre de rangees laissait la
+    // boutique tassee vers le fond et gaspillait le tiers proche.
+    auto pas_de = [](int r) {
+        return r <= 1 ? 0.0 : (BOUTIQUE_V_PRES - BOUTIQUE_V_FOND) / (r - 1);
+    };
+
     int rangees = 1, colonnes = n, largeur = 40;
     for (int r = 1; r <= 4; r++) {
         const int c = (n + r - 1) / r;
-        const qreal pas_v = (BOUTIQUE_V_PRES - BOUTIQUE_V_FOND) / std::max(1, r);
         const int par_largeur = (int) ((2 * BOUTIQUE_U - (c - 1) * ECART) / c);
-        // La hauteur d'une carte doit tenir dans le pas de profondeur, sans quoi
-        // une rangee recouvre celle de devant.
         // Une carte couchee occupe `profondeur_carte(w)` en profondeur : pour que
-        // la rangee de devant n'en cache qu'un quart, il faut assez d'ecart.
-        int par_profondeur = 16;
-        while (par_profondeur < 260 &&
-               Perspective::profondeur_carte(par_profondeur + 1) * VISIBLE_DERRIERE <= pas_v)
-            par_profondeur++;
-        const int w = std::min({par_largeur, par_profondeur, 98});
+        // la rangee de devant n'en cache qu'un quart, il faut assez d'ecart. Une
+        // rangee seule n'a personne devant elle, rien ne la borne.
+        int par_profondeur = 260;
+        if (r > 1) {
+            par_profondeur = 16;
+            while (par_profondeur < 260 &&
+                   Perspective::profondeur_carte(par_profondeur + 1) * VISIBLE_DERRIERE
+                       <= pas_de(r))
+                par_profondeur++;
+        }
+        // Le plafond garde la boutique en deca de la ville du joueur, a qui elle
+        // ne doit pas voler la vedette — et surtout en deca de la place que la
+        // table laisse entre les villes du fond et la sienne. Sur une seule
+        // rangee, cette place est celle de deux : les cartes peuvent y grandir.
+        const int plafond = r == 1 ? 116 : 92;
+        const int w = std::min({par_largeur, par_profondeur, plafond});
         if (w > largeur) { largeur = w; rangees = r; colonnes = c; }
     }
 
-    const qreal pas_v = (BOUTIQUE_V_PRES - BOUTIQUE_V_FOND) / std::max(1, rangees);
+    const qreal pas_v = pas_de(rangees);
+    // Une fois la taille des cartes plafonnee, la boutique n'occupait plus que le
+    // milieu de sa bande et laissait deux croissants de feutre vides. On ecarte
+    // donc les colonnes jusqu'a remplir la bande, sans jamais depasser un tiers de
+    // carte d'ecart : au-dela ce ne serait plus un etalage mais des cartes seules.
+    const qreal pas_u = colonnes <= 1 ? 0
+                      : std::min<qreal>(largeur * 1.30,
+                                        (2 * BOUTIQUE_U - largeur) / (colonnes - 1));
     int i = 0;
     for (const auto& pile : piles) {
         Batiment* bat = pile.first;
         const int r = i / colonnes, c = i % colonnes;
         const int dans_rangee = std::min(colonnes, n - r * colonnes);
-        const qreal v = BOUTIQUE_V_FOND + r * pas_v;
-        const qreal u = (c - (dans_rangee - 1) / 2.0) * (largeur + ECART);
+        const qreal v = rangees <= 1 ? (BOUTIQUE_V_FOND + BOUTIQUE_V_PRES) / 2
+                                     : BOUTIQUE_V_FOND + r * pas_v;
+        const qreal u = (c - (dans_rangee - 1) / 2.0) * pas_u;
 
         auto* item = new ItemCarte(bat, ItemCarte::Role::Boutique, largeur);
         item->set_exemplaires(pile.second);
@@ -495,24 +546,12 @@ void ScenePlateau::poser_des() {
     vider(items_des);
     Partie* partie = Partie::get_instance();
 
-    // Les des et la pioche sont poses **sur la table**, devant la boutique. Ils
-    // sont dessines dans une image puis mis a l'echelle de leur profondeur :
-    // c'est le meme traitement que les cartes, donc la meme perspective.
-    auto poser_plateau = [&](const QPixmap& px, qreal u, qreal v) {
+    // Poses a plat, a cote de la table : ni perspective, ni profondeur.
+    auto poser_materiel = [&](const QPixmap& px, const QPointF& coin) {
         if (px.isNull()) return;
         auto* it = addPixmap(px);
-        // Les des et la pioche sont dessines a une taille commode ; on les ramene
-        // a l'echelle de la table, ou une unite vaut a peu pres un pixel.
-        const qreal e = Perspective::echelle(v) * 0.58;
-        // Rien ne se pose a cote de la table : on ramene sur le feutre.
-        const qreal marge = std::max(0.0, Perspective::demi_largeur(v) - px.width() * e / 2.0 - 20);
-        const QPointF a = Perspective::projeter(std::clamp(u, -marge, marge), v);
-        QTransform t;
-        t.translate(a.x(), a.y());
-        t.scale(e, e);
-        t.translate(-px.width() / 2.0, -px.height());
-        it->setTransform(t);
-        it->setZValue(10 + 100 * v);
+        it->setPos(coin);
+        it->setZValue(280);
         items_des.append(it);
     };
 
@@ -521,22 +560,26 @@ void ScenePlateau::poser_des() {
     const unsigned int d2 = partie->get_de_2();
     const unsigned int total = partie->get_total_des();
 
-    QPixmap socle(300, 188);
+    QPixmap socle(240, 152);
     socle.fill(Qt::transparent);
     {
         QPainter p(&socle);
         p.setRenderHint(QPainter::Antialiasing);
-        p.setPen(Qt::NoPen);
-        p.setBrush(QColor(0, 0, 0, 46));
-        p.drawEllipse(QRectF(30, 162, 240, 24));
+        p.setPen(QPen(QColor(255, 255, 255, 140), 2));
+        p.setBrush(QColor(253, 250, 243, 214));
+        p.drawRoundedRect(QRectF(2, 2, 236, 148), 16, 16);
 
         if (d1 == 0) {
-            p.setPen(QColor(255, 255, 255, 215));
-            p.setFont(police(23, true));
-            p.drawText(QRectF(0, 62, 300, 46), Qt::AlignCenter, "Dés non lancés");
+            // Un emplacement vide, en pointilles : c'est la que les des tomberont.
+            p.setPen(QPen(QColor(160, 170, 178, 190), 3, Qt::DashLine));
+            p.setBrush(Qt::NoBrush);
+            p.drawRoundedRect(QRectF(56, 26, 128, 100), 16, 16);
+            p.setPen(Decor::Palette::encre_pale());
+            p.setFont(police(16, true));
+            p.drawText(QRectF(0, 60, 240, 36), Qt::AlignCenter, "Dés non lancés");
         } else {
             auto de = [&](qreal x, qreal y, unsigned int valeur) {
-                const qreal c = 92;
+                const qreal c = 66;
                 p.setPen(QPen(QColor("#ded7c8"), 3));
                 p.setBrush(Qt::white);
                 p.drawRoundedRect(QRectF(x, y, c, c), 16, 16);
@@ -551,60 +594,61 @@ void ScenePlateau::poser_des() {
                 for (int k = 0; k < 9; k++) {
                     if (!grille[valeur][k]) continue;
                     p.drawEllipse(QPointF(x + c * (0.24 + (k % 3) * 0.26),
-                                          y + c * (0.24 + (k / 3) * 0.26)), 7.5, 7.5);
+                                          y + c * (0.24 + (k / 3) * 0.26)), 5.5, 5.5);
                 }
             };
-            if (d2 == 0) de(104, 6, d1);
-            else { de(50, 6, d1); de(158, 6, d2); }
+            if (d2 == 0) de(87, 12, d1);
+            else { de(44, 12, d1); de(130, 12, d2); }
 
             // Le total, en gros : c'est lui qui active les etablissements. Le bonus
             // du Port s'ajoute au total et non aux des, il faut donc l'annoncer a
             // part sinon l'ecart entre les faces et le total ne s'explique pas.
             p.setPen(Decor::Palette::or_sombre());
-            p.setFont(police(54, true));
-            p.drawText(QRectF(0, 100, 300, 58), Qt::AlignCenter, QString::number(total));
-            p.setPen(QColor(255, 255, 255, 230));
-            p.setFont(police(15, true));
-            p.drawText(QRectF(0, 156, 300, 22), Qt::AlignCenter,
+            p.setFont(police(38, true));
+            p.drawText(QRectF(0, 84, 240, 42), Qt::AlignCenter, QString::number(total));
+            p.setPen(Decor::Palette::encre_pale());
+            p.setFont(police(13, true));
+            p.drawText(QRectF(0, 124, 240, 20), Qt::AlignCenter,
                        total != d1 + d2 ? "total (Port : +2)" : "total");
         }
     }
-    poser_plateau(socle, DES_U, DES_V);
+    poser_materiel(socle, DES_COIN);
 
     // --- La pioche ---
     Pioche* pioche = partie->get_pioche();
-    QPixmap tas(290, 188);
+    QPixmap tas(240, 152);
     tas.fill(Qt::transparent);
     {
         QPainter p(&tas);
         p.setRenderHint(QPainter::Antialiasing);
-        p.setPen(Qt::NoPen);
-        p.setBrush(QColor(0, 0, 0, 46));
-        p.drawEllipse(QRectF(26, 162, 238, 24));
+        p.setPen(QPen(QColor(255, 255, 255, 140), 2));
+        p.setBrush(QColor(253, 250, 243, 214));
+        p.drawRoundedRect(QRectF(2, 2, 236, 148), 16, 16);
         if (pioche != nullptr && !pioche->est_vide()) {
             QPixmap dos("../assets/batiments/BACK-cartes.png");
             if (!dos.isNull()) {
-                dos = dos.scaledToHeight(162, Qt::SmoothTransformation);
+                dos = dos.scaledToHeight(116, Qt::SmoothTransformation);
                 // Une pile, pas une carte : deux epaisseurs decalees dessous.
-                p.setBrush(QColor(0, 0, 0, 60));
-                p.drawRoundedRect(QRectF(16, 8, dos.width(), 162), 8, 8);
-                p.drawPixmap(11, 3, dos);
-                p.drawPixmap(6, 0, dos);
+                p.setPen(Qt::NoPen);
+                p.setBrush(QColor(0, 0, 0, 50));
+                p.drawRoundedRect(QRectF(26, 24, dos.width(), 116), 6, 6);
+                p.drawPixmap(21, 20, dos);
+                p.drawPixmap(16, 18, dos);
             }
-            p.setPen(QColor(255, 255, 255, 240));
-            p.setFont(police(46, true));
-            p.drawText(QRectF(124, 40, 156, 56), Qt::AlignLeft | Qt::AlignVCenter,
+            p.setPen(Decor::Palette::encre());
+            p.setFont(police(34, true));
+            p.drawText(QRectF(112, 44, 118, 44), Qt::AlignLeft | Qt::AlignVCenter,
                        QString::number(pioche->get_taille()));
-            p.setPen(QColor(255, 255, 255, 200));
-            p.setFont(police(16, true));
-            p.drawText(QRectF(124, 96, 156, 24), Qt::AlignLeft, "en pioche");
+            p.setPen(Decor::Palette::encre_pale());
+            p.setFont(police(13, true));
+            p.drawText(QRectF(112, 90, 118, 20), Qt::AlignLeft, "en pioche");
         } else {
-            p.setPen(QColor(255, 255, 255, 215));
-            p.setFont(police(22, true));
-            p.drawText(QRectF(0, 62, 290, 46), Qt::AlignCenter, "Pioche vide");
+            p.setPen(Decor::Palette::encre_pale());
+            p.setFont(police(18, true));
+            p.drawText(QRectF(0, 60, 240, 36), Qt::AlignCenter, "Pioche vide");
         }
     }
-    poser_plateau(tas, PIOCHE_U, PIOCHE_V);
+    poser_materiel(tas, PIOCHE_COIN);
 }
 
 void ScenePlateau::montrer_des() {
@@ -614,45 +658,29 @@ void ScenePlateau::montrer_des() {
 // ------------------------------------------------------------------- villes
 
 ScenePlateau::Place ScenePlateau::place_de(unsigned int rang, unsigned int nb) const {
-    /// Ou les adversaires s'installent autour de la table, dans l'ordre du tour a
-    /// partir du joueur suivant : on lit de gauche a droite qui joue apres, ce qui
-    /// compte pour les cartes rouges — elles remontent depuis le joueur precedent.
+    /// Les adversaires s'installent **tous au fond**, cote a cote, dans l'ordre du
+    /// tour a partir du joueur suivant : on lit de gauche a droite qui joue apres,
+    /// ce qui compte pour les cartes rouges — elles remontent depuis le joueur
+    /// precedent.
+    ///
+    /// Les asseoir sur les flancs paraissait plus juste, mais le flanc de la table
+    /// est aussi le bord de l'ecran : leurs cartes y passaient sous les des et sous
+    /// la pioche, qui n'ont nulle part ou aller ailleurs. Tous au fond, les deux
+    /// flancs se liberent, et la boutique peut s'etaler sur toute la largeur.
     ///
     /// `u`, `v` situent leur ville **sur le tapis** ; `plaque` situe leur panneau
-    /// **hors du tapis**, contre le bord de l'ecran. Les deux sont separes parce
-    /// qu'au bord de la table il n'y a plus de place pour un panneau : le poser
-    /// sur le feutre reviendrait a couvrir les cartes.
-    ///
-    /// `colonnes` dit comment la ville s'etale : en rangee au fond, en colonne sur
-    /// les cotes — comme un joueur qui pose son jeu devant lui.
-    const qreal L = LARGEUR, H = HAUTEUR;
-    static const qreal PL = 236;                        // largeur d'une plaque
-    const QPointF haut_g(L * 0.15, 88), haut_d(L * 0.85 - PL, 88), haut_c(L / 2 - PL / 2, 74);
-    const QPointF gauche(18, H * 0.42), droite(L - PL - 18, H * 0.42);
+    /// **hors du tapis**, juste au-dessus : au fond de la table il n'y a plus de
+    /// place pour un panneau, le poser sur le feutre couvrirait les cartes.
+    const qreal pas = 2 * ADVERSAIRES_U / std::max(1u, nb);
+    const qreal u = -ADVERSAIRES_U + pas * (rang + 0.5);
 
-    switch (nb) {
-        case 1:  return {    0, 0.20, 1, haut_c};
-        case 2:  return rang == 0 ? Place{-250, 0.22, 1, haut_g}
-                                  : Place{ 250, 0.22, 1, haut_d};
-        case 3:  switch (rang) {
-                     case 0:  return {-470, 0.46, 1, gauche};
-                     case 1:  return {   0, 0.18, 1, haut_c};
-                     default: return { 470, 0.46, 1, droite};
-                 }
-        case 4:  switch (rang) {
-                     case 0:  return {-480, 0.48, 1, gauche};
-                     case 1:  return {-250, 0.20, 1, haut_g};
-                     case 2:  return { 250, 0.20, 1, haut_d};
-                     default: return { 480, 0.48, 1, droite};
-                 }
-        default: switch (rang) {
-                     case 0:  return {-490, 0.50, 1, gauche};
-                     case 1:  return {-290, 0.20, 1, haut_g};
-                     case 2:  return {   0, 0.16, 1, haut_c};
-                     case 3:  return { 290, 0.20, 1, haut_d};
-                     default: return { 490, 0.50, 1, droite};
-                 }
-    }
+    // La plaque tient dans la part de son proprietaire, sans jamais depasser du
+    // cadre ni descendre sous une largeur ou plus rien ne serait lisible.
+    const qreal larg = std::clamp<qreal>(pas * Perspective::echelle(ADVERSAIRES_V) - 10,
+                                         150, 236);
+    const qreal x = Perspective::projeter(u, ADVERSAIRES_V).x() - larg / 2;
+    return {u, ADVERSAIRES_V, larg, pas - 12,
+            QPointF(std::clamp<qreal>(x, 12, LARGEUR - larg - 12), 74)};
 }
 
 bool ScenePlateau::ville_depliee(unsigned int joueur) const {
@@ -689,7 +717,7 @@ void ScenePlateau::mousePressEvent(QGraphicsSceneMouseEvent* e) {
 }
 
 void ScenePlateau::poser_cartes(unsigned int indice_joueur, qreal u_centre, qreal v,
-                                int largeur, int rangees_max, qreal bande,
+                                int largeur_max, int rangees_max, qreal bande,
                                 QList<QGraphicsItem*>& sortie) {
     Partie* partie = Partie::get_instance();
     const Joueur* j = partie->get_tab_joueurs()[indice_joueur];
@@ -698,16 +726,85 @@ void ScenePlateau::poser_cartes(unsigned int indice_joueur, qreal u_centre, qrea
 
     const int n = (int) tuiles.size();
 
-    // Une ville s'etale en une ou deux rangees, et les cartes se chevauchent
-    // horizontalement des qu'il y en a trop — comme une main posee en eventail.
-    // Empiler les rangees en profondeur, comme le faisait la version precedente,
-    // enterrait les cartes du fond sous celles de devant.
-    const int rangees = (n > 2 * rangees_max || rangees_max == 1)
-                      ? std::min(rangees_max, (n + 7) / 8) : 1;
-    const int colonnes = (n + rangees - 1) / rangees;
-    const qreal pas_u = colonnes <= 1 ? 0
-                      : std::min<qreal>(largeur + ECART, (bande - largeur) / (colonnes - 1));
-    const qreal pas_v = 0.075;
+    // Jusqu'ou va le feutre — et le cadre — de part et d'autre du **centre de la
+    // table**, pour une ville de `r` rangees de cartes larges de `w`. On mesure au
+    // bord arriere des cartes autant qu'a leur bord proche : une carte couchee
+    // s'etend vers le fond, ou la table est plus etroite. La rangee la plus
+    // serree impose sa mesure aux autres, faute de quoi elles seraient decalees.
+    auto libre_pour = [&](int r, qreal w) {
+        const qreal pv = Perspective::profondeur_carte(w) * LISIERE;
+        qreal l = Perspective::place_ecran(v, 16);
+        for (int k = 0; k < r; k++) {
+            const qreal vr = v - (r - 1 - k) * pv;
+            l = std::min({l, Perspective::demi_largeur(vr),
+                          Perspective::demi_largeur(vr - Perspective::profondeur_carte(w)),
+                          Perspective::place_ecran(vr, 16)});
+        }
+        return l;
+    };
+
+    // La ville reste centree sur son emplacement : c'est l'**eventail** qui se
+    // resserre pour tenir dans le feutre, pas la ville qui glisse vers le milieu.
+    // Ramener le centre revenait a empiler toutes les villes du fond au meme
+    // endroit des que l'une d'elles debordait.
+    auto bande_pour = [&](int r, qreal w) {
+        return std::min(bande, 2 * std::max<qreal>(w / 2.0,
+                                    libre_pour(r, w) - std::abs(u_centre) - 8));
+    };
+    auto pas_pour = [&](int c, qreal w, qreal b) {
+        return c <= 1 ? w : std::clamp<qreal>((b - w) / (c - 1), w * 0.30, w + ECART);
+    };
+
+    // Combien de rangees, et de quelle taille. On essaie chaque disposition et
+    // l'on garde celle qui **montre le plus de carte** — pas la plus grande, ce
+    // n'est pas la meme chose : onze cartes sur une rangee sont grandes mais
+    // recouvertes aux trois quarts, alors qu'en deux rangees elles se voient
+    // entierement. Trois contraintes bornent chaque essai :
+    //
+    //   - dans un eventail, chaque carte doit laisser voir au moins sa lisiere
+    //     droite. Une rangee de `c` cartes dans une bande `b` tient donc si
+    //     b >= w + (c-1) * LISIERE * w ;
+    //   - une seconde rangee **recule** la ville, et le feutre se pince au fond :
+    //     au-dela d'une certaine taille les cartes en sortiraient. La profondeur
+    //     d'une carte etant proportionnelle a sa largeur, la limite se calcule
+    //     d'un trait ;
+    //   - une ville posee loin du centre a moins de feutre devant elle que celle
+    //     du milieu, et doit retrecir d'autant.
+    //
+    // Ce reglage remplace un seuil fixe de huit cartes par ville, qui donnait a
+    // deux joueurs des villes minuscules dans une bande vide et, a six, des
+    // cartes trop grandes dont on ne voyait qu'un coin.
+    const qreal deux_rangees_max = (v - MARGE_FOND) / (1.0 + LISIERE)
+                                 / Perspective::profondeur_carte(1);
+
+    int rangees = 1, largeur = 24;
+    qreal meilleure_vue = -1;
+    const int plafond = std::max(24, largeur_max);
+    for (int r = 1; r <= std::max(1, rangees_max); r++) {
+        // Une seconde rangee que le feutre ne peut pas porter, meme en cartes
+        // minuscules, n'a pas a etre essayee.
+        if (r > 1 && deux_rangees_max < 24) break;
+        const int c = (n + r - 1) / r;
+        qreal w = bande / (1.0 + LISIERE * (c - 1));
+        if (r > 1) w = std::min(w, deux_rangees_max);
+        int wi = (int) std::clamp<qreal>(w, 24, plafond);
+        while (wi > 24 && libre_pour(r, wi) - std::abs(u_centre) - 8 < wi / 2.0) wi -= 2;
+
+        // Ce qu'on verra de chaque carte : la lisiere que sa voisine lui laisse
+        // en largeur, et — pour la rangee du fond — la part que la rangee de
+        // devant lui laisse en hauteur.
+        const qreal vue = std::min<qreal>(pas_pour(c, wi, bande_pour(r, wi)), wi)
+                        * wi * (r > 1 ? LISIERE : 1.0);
+        if (vue > meilleure_vue) { meilleure_vue = vue; largeur = wi; rangees = r; }
+    }
+
+    // La rangee du fond doit garder de quoi se lire : on l'ecarte assez pour que
+    // le haut de ses cartes — nom, numero d'activation — reste decouvert.
+    const qreal pas_v = Perspective::profondeur_carte(largeur) * LISIERE;
+
+    const int colonnes = std::max(1, (n + rangees - 1) / rangees);
+    const qreal pas_u = colonnes <= 1
+                      ? 0 : pas_pour(colonnes, largeur, bande_pour(rangees, largeur));
 
     for (int i = 0; i < n; i++) {
         const Tuile& t = tuiles[i];
@@ -715,10 +812,7 @@ void ScenePlateau::poser_cartes(unsigned int indice_joueur, qreal u_centre, qrea
         const int dans_rangee = std::min(colonnes, n - r * colonnes);
         // La rangee 0 est la plus au fond.
         const qreal vc = v - (rangees - 1 - r) * pas_v;
-        const qreal demi = std::max(0.0, Perspective::demi_largeur(vc)
-                                         - (dans_rangee - 1) * pas_u / 2.0 - largeur / 2.0 - 12);
-        const qreal centre = std::clamp(u_centre, -demi, demi);
-        const qreal u = centre + (c - (dans_rangee - 1) / 2.0) * pas_u;
+        const qreal u = u_centre + (c - (dans_rangee - 1) / 2.0) * pas_u;
 
         auto* ic = new ItemCarte(t.batiment, ItemCarte::Role::Ville, largeur);
         ic->set_exemplaires(t.exemplaires);
@@ -726,8 +820,11 @@ void ScenePlateau::poser_cartes(unsigned int indice_joueur, qreal u_centre, qrea
         ic->set_jetons(j->get_jetons(t.batiment->get_nom()));
         ic->set_proprietaire((int) indice_joueur);
         ic->poser(u, vc);
-        // Dans un eventail, c'est la carte de droite qui passe devant sa voisine.
-        ic->setZValue(ic->zValue() + c * 0.01);
+        // Dans un eventail, c'est la carte de **gauche** qui passe devant sa
+        // voisine : chaque carte ne laisse voir que son bord droit, et c'est la
+        // qu'est le numero d'activation. Etale dans l'autre sens, un eventail
+        // serre ne montrait que des coins vides.
+        ic->setZValue(ic->zValue() - c * 0.01);
         connect(ic, &ItemCarte::cliquee, this, &ScenePlateau::carte_cliquee);
         connect(ic, &ItemCarte::survolee, this, &ScenePlateau::carte_survolee);
         addItem(ic);
@@ -741,8 +838,13 @@ void ScenePlateau::poser_plaque(unsigned int joueur, const Place& p, bool actif,
     const Joueur* j = partie->get_tab_joueurs()[joueur];
     const bool deplie = actif || ville_depliee(joueur);
 
-    const qreal larg = actif ? 306 : 236;
-    const qreal haut = actif ? 94 : 68;
+    const qreal larg = actif ? 306 : p.largeur_plaque;
+    // A six joueurs les plaques se resserrent : la bourse et les monuments ne
+    // tiennent plus cote a cote, et les vignettes finissaient en tas illisible.
+    // Passe une certaine etroitesse, la plaque se lit donc sur deux lignes — la
+    // bourse, puis les monuments sur toute la largeur.
+    const bool serree = !actif && larg < 210;
+    const qreal haut = actif ? 94 : (serree ? 92 : 68);
     const QRectF cadre(p.plaque, QSizeF(larg, haut));
 
     // C'est vers ce point que voleront les pieces gagnees ou perdues.
@@ -757,8 +859,13 @@ void ScenePlateau::poser_plaque(unsigned int joueur, const Place& p, bool actif,
     panneau->setZValue(300);
     sortie.append(panneau);
 
+    // Le bandeau : arrondi en haut comme la plaque, droit en bas. Il faut le
+    // dire a QPainterPath, dont la regle de remplissage par defaut est
+    // **pair-impair** : les deux morceaux se recouvrent, et leur intersection
+    // ressortait en trou clair au beau milieu du bandeau, en travers du nom.
     const qreal hb = actif ? 32 : 26;
     QPainterPath bandeau;
+    bandeau.setFillRule(Qt::WindingFill);
     bandeau.addRoundedRect(QRectF(cadre.left(), cadre.top(), cadre.width(), hb), 14, 14);
     bandeau.addRect(QRectF(cadre.left(), cadre.top() + hb - 14, cadre.width(), 14));
     auto* b = addPath(bandeau.simplified(), QPen(Qt::NoPen),
@@ -766,19 +873,24 @@ void ScenePlateau::poser_plaque(unsigned int joueur, const Place& p, bool actif,
     b->setZValue(301);
     sortie.append(b);
 
-    const int ta = actif ? 62 : 46;
+    const int ta = actif ? 62 : (serree ? 38 : 46);
     auto* av = addPixmap(Decor::avatar(joueur, ta));
     av->setPos(cadre.left() + 8, cadre.top() - ta * 0.34);
     av->setZValue(303);
     sortie.append(av);
 
+    const QString progres = QString("%1/%2").arg(j->nb_monuments_construits())
+                                    .arg(partie->get_nb_monuments_win());
     const QFont fnom = police(actif ? 16 : 13, true);
-    auto* nom = addSimpleText(QString::fromStdString(j->get_nom()), fnom);
+    const QFontMetrics fmn(fnom), fmp(police(12, true));
+    // Le compte de monuments est cale a droite du bandeau : le nom prend ce qui
+    // reste, et se fait couper au besoin. Un nom saisi par le joueur peut etre
+    // long, et il venait se coller au compteur.
+    const qreal place_nom = cadre.width() - ta - 24 - fmp.horizontalAdvance(progres) - 10;
+    auto* nom = addSimpleText(fmn.elidedText(QString::fromStdString(j->get_nom()),
+                                             Qt::ElideRight, (int) place_nom), fnom);
     nom->setBrush(Qt::white);
-    {
-        QFontMetrics fmn(fnom);
-        nom->setPos(cadre.left() + ta + 14, cadre.top() + (hb - fmn.height()) / 2);
-    }
+    nom->setPos(cadre.left() + ta + 14, cadre.top() + (hb - fmn.height()) / 2);
     nom->setZValue(303);
     sortie.append(nom);
 
@@ -798,9 +910,21 @@ void ScenePlateau::poser_plaque(unsigned int joueur, const Place& p, bool actif,
     int nb_mon = 0;
     for (const auto& m : j->get_liste_monument())
         if (!Joueur::est_monument_de_depart(m.first->get_nom())) nb_mon++;
+    // La bande des monuments prend ce que la bourse laisse, et pas un pixel de
+    // plus : a six joueurs les plaques se resserrent, et une taille fixe faisait
+    // deborder les vignettes hors du panneau. Trop a l'etroit, elles se
+    // chevauchent comme une pile plutot que de sortir du cadre.
+    const qreal apres_bourse = serree ? 8 : ta + 92;
+    const qreal dispo = cadre.width() - 8 - apres_bourse;
+    // Sur deux lignes, la vignette est aussi bornee par ce qui reste de hauteur :
+    // une carte fait une fois et demie sa largeur, et depassait par le bas.
     const int lm = nb_mon > 0
-            ? std::clamp((int) ((cadre.width() - ta - 100) / nb_mon) - 3, 14, actif ? 34 : 24) : 14;
-    qreal mx = cadre.left() + ta + 92;
+            ? std::clamp((int) (dispo / nb_mon) - 3, 12, actif ? 34 : (serree ? 18 : 24))
+            : 14;
+    const qreal pas_mon = nb_mon > 1 ? std::min<qreal>(lm + 3, (dispo - lm) / (nb_mon - 1))
+                                     : lm + 3;
+    const qreal my = cadre.top() + hb + (serree ? 30 : 2);
+    qreal mx = cadre.left() + apres_bourse;
     for (const auto& m : j->get_liste_monument()) {
         if (Joueur::est_monument_de_depart(m.first->get_nom())) continue;
         auto* im = new ItemCarte(m.first, ItemCarte::Role::Monument, lm);
@@ -808,20 +932,17 @@ void ScenePlateau::poser_plaque(unsigned int joueur, const Place& p, bool actif,
         im->set_proprietaire((int) joueur);
         // Les monuments ne sont pas poses sur la table : ils accompagnent la
         // plaque, hors du tapis, donc sans perspective.
-        im->poser_hors_table(QPointF(mx, cadre.top() + hb + 2));
+        im->poser_hors_table(QPointF(mx, my));
         im->setZValue(303);
         connect(im, &ItemCarte::cliquee, this, &ScenePlateau::carte_cliquee);
         connect(im, &ItemCarte::survolee, this, &ScenePlateau::carte_survolee);
         addItem(im);
         sortie.append(im);
-        mx += lm + 3;
+        mx += pas_mon;
     }
 
-    const QString progres = QString("%1/%2").arg(j->nb_monuments_construits())
-                                    .arg(partie->get_nb_monuments_win());
     auto* compteur = addSimpleText(progres, police(12, true));
     compteur->setBrush(QColor(255, 255, 255, 225));
-    QFontMetrics fmp(police(12, true));
     compteur->setPos(cadre.right() - 10 - fmp.horizontalAdvance(progres), cadre.top() + 5);
     compteur->setZValue(303);
     sortie.append(compteur);
@@ -866,10 +987,16 @@ void ScenePlateau::poser_adversaires() {
         const unsigned int i = (actuel + k) % nb;
         const Place p = place_de(k - 1, nb - 1);
         const bool deplie = ville_depliee(i);
-        // Depliee, la ville avance vers le joueur et ses cartes grandissent :
-        // c'est le geste de « pousser son jeu au milieu de la table ».
-        const qreal v = p.v + (deplie ? 0.09 : 0.0);
-        poser_cartes(i, p.u, v, deplie ? 76 : 62, 1, deplie ? 520 : 400, items_adversaires);
+        // Depliee, une ville deborde un peu sur ses voisines et ses cartes
+        // grandissent : c'est le geste de « pousser son jeu au milieu de la
+        // table ». La reculer davantage ne servirait a rien — au fond, c'est la
+        // boutique qui l'arrete, et la perspective ne rend qu'un centieme.
+        //
+        // Le plafond n'est pas la place : a deux joueurs, une ville du fond a
+        // toute la bande pour elle et ses cartes peuvent doubler de taille. C'est
+        // `poser_cartes` qui tranche, il sait ce qui tient.
+        poser_cartes(i, p.u, p.v + (deplie ? 0.03 : 0.0), deplie ? 88 : 76, 2,
+                     p.bande * (deplie ? 1.25 : 1.0), items_adversaires);
         poser_plaque(i, p, false, items_adversaires);
     }
 }
@@ -883,8 +1010,8 @@ void ScenePlateau::poser_ville_active() {
     // ville est la plus grande, c'est lui qui doit decider.
     // Sa plaque se pose en bas a gauche, hors du tapis : au bord proche la table
     // se retrecit, et un panneau pose sur le feutre couvrirait ses propres cartes.
-    const Place p{0, MA_VILLE_V, 0, QPointF(18, HAUTEUR - 112)};
-    poser_cartes(actuel, 0, MA_VILLE_V, 92, 2, 940, items_actif);
+    const Place p{0, MA_VILLE_V, 306, MA_VILLE_BANDE, QPointF(18, HAUTEUR - 110)};
+    poser_cartes(actuel, 0, MA_VILLE_V, 96, 2, MA_VILLE_BANDE, items_actif);
 
     poser_plaque(actuel, p, true, items_actif);
 }
